@@ -3,6 +3,8 @@
 A static web page that helps people who are not into networking set up
 [dnspatch](https://github.com/dnspatch/dnspatch), a dynamic DNS daemon.
 
+**Live site: <https://dnspatch.github.io/builder/>**
+
 - **Config constructor**: assemble `dnspatch.toml` from blocks, with hints on
   where to find each value.
 - **Build helper**: from a config or a list of providers, get the build tags and
