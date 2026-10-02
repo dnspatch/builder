@@ -8,15 +8,34 @@ export interface PluginChoice {
   values: Record<string, string>;
 }
 
+/** A notifier also chooses which events it is sent. */
+export interface NotifierChoice extends PluginChoice {
+  events: readonly string[];
+}
+
+/** Event types a notifier can publish; `status` is what it gets when `events` is not set. */
+export const eventTypes = [
+  "status",
+  "provider_status",
+  "retriever_status",
+  "ip_change",
+  "cycle",
+  "lifecycle",
+] as const;
+
 /** Everything the constructor collects; a single instance in this version. */
 export interface ConfigDraft {
   name: string;
   interval: string;
-  retriever: PluginChoice;
+  /** In polling order: the first is the main one, the rest are tried when it fails. */
+  retrievers: readonly PluginChoice[];
   provider: PluginChoice;
+  notifiers: readonly NotifierChoice[];
 }
 
 export interface Generated {
+  /** Notifiers exist only in the -full flavour, so the config needs that image. */
+  full: boolean;
   toml: string;
   /** Template of the environment file that holds the secrets. */
   env: string;
@@ -79,6 +98,7 @@ function pluginLines(
   choice: PluginChoice,
   out: { env: string[]; missing: string[]; files: string[] },
   fileSecrets: FileSecrets,
+  extra: readonly string[] = [],
 ): string[] {
   const lines = [`[[${prefix}]]`, `type = ${quote(plugin.name)}`];
   for (const field of plugin.fields) {
@@ -114,7 +134,15 @@ function pluginLines(
     }
     lines.push(`${field.name} = ${rendered}`);
   }
-  return lines;
+  return [...lines, ...extra];
+}
+
+/** The `events` line, left out when it would only repeat the default. */
+function eventsLine(events: readonly string[]): string[] {
+  const chosen = eventTypes.filter((e) => events.includes(e));
+  if (chosen.length === 0 || (chosen.length === 1 && chosen[0] === "status"))
+    return [];
+  return [`events = [${chosen.map(quote).join(", ")}]`];
 }
 
 /** Writes the configuration for the draft. The schema decides which fields exist and which are secret. */
@@ -123,29 +151,32 @@ export function generate(
   schema: Schema,
   fileSecrets: FileSecrets = new Set(),
 ): Generated {
-  const retriever = findPlugin(schema, "retriever", draft.retriever.type);
   const provider = findPlugin(schema, "provider", draft.provider.type);
-  if (!retriever || !provider) throw new Error("unknown plugin in the draft");
+  if (!provider) throw new Error(`unknown provider ${draft.provider.type}`);
 
   const out = {
     env: [] as string[],
     missing: [] as string[],
     files: [] as string[],
   };
-  const retrieverLines = pluginLines(
-    "instance.retriever",
-    retriever,
-    draft.retriever,
-    out,
-    fileSecrets,
-  );
-  const providerLines = pluginLines(
-    "instance.provider",
-    provider,
-    draft.provider,
-    out,
-    fileSecrets,
-  );
+  if (draft.retrievers.length === 0) out.missing.push("retriever");
+
+  // Blocks of the instance, each followed by an empty line.
+  const blocks: string[][] = [];
+  const add = (
+    kind: Kind,
+    prefix: string,
+    choice: PluginChoice,
+    extra: readonly string[] = [],
+  ) => {
+    const plugin = findPlugin(schema, kind, choice.type);
+    if (!plugin) throw new Error(`unknown ${kind} ${choice.type}`);
+    blocks.push(pluginLines(prefix, plugin, choice, out, fileSecrets, extra));
+  };
+  for (const r of draft.retrievers) add("retriever", "instance.retriever", r);
+  add("provider", "instance.provider", draft.provider);
+  for (const n of draft.notifiers)
+    add("notifier", "instance.notify", n, eventsLine(n.events));
 
   // Only the sources of secrets this config really uses are mentioned.
   const notes: string[] = [];
@@ -167,16 +198,19 @@ export function generate(
     "[[instance]]",
     `name = ${quote(draft.name || "home")}`,
     "",
-    ...retrieverLines,
-    "",
-    ...providerLines,
-    "",
+    ...blocks.flatMap((b) => [...b, ""]),
   ].join("\n");
 
   const env = out.env.length
     ? `${["# Secrets for dnspatch. Fill in the values and keep this file private.", ...out.env].join("\n")}\n`
     : "";
-  return { toml, env, missing: out.missing, files: out.files };
+  return {
+    full: draft.notifiers.length > 0,
+    toml,
+    env,
+    missing: out.missing,
+    files: out.files,
+  };
 }
 
 export interface UsedPlugin {

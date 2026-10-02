@@ -51,6 +51,89 @@ test("config constructor: a key that lives in a file is mounted into the contain
   await expect(file(page, "dnspatch.toml")).not.toContainText(".env");
 });
 
+test("retrievers: a backup can be added, reordered and removed", async ({
+  page,
+}) => {
+  await page.goto("#/config");
+  const toml = file(page, "dnspatch.toml");
+  const items = page.locator(".chain li");
+
+  await expect(items).toHaveCount(1);
+  await expect(page.getByRole("button", { name: /^Убрать/ })).toBeDisabled();
+
+  await page
+    .getByLabel("Добавить запасной", { exact: true })
+    .selectOption("icanhazip");
+  await page.getByRole("button", { name: "Добавить запасной" }).click();
+  await expect(items).toHaveCount(2);
+  await expect(items.nth(0)).toContainText("Основной");
+  await expect(items.nth(1)).toContainText("Запасной 1");
+
+  // ipify is first, icanhazip second.
+  const text = await toml.textContent();
+  expect(text?.indexOf('type = "ipify"')).toBeLessThan(
+    text?.indexOf('type = "icanhazip"') ?? -1,
+  );
+
+  await page.getByRole("button", { name: "Выше: icanhazip" }).click();
+  await expect(items.nth(0)).toContainText("icanhazip");
+  const swapped = await toml.textContent();
+  expect(swapped?.indexOf('type = "icanhazip"')).toBeLessThan(
+    swapped?.indexOf('type = "ipify"') ?? -1,
+  );
+
+  await page.getByRole("button", { name: "Убрать: icanhazip" }).click();
+  await expect(items).toHaveCount(1);
+  await expect(toml).not.toContainText("icanhazip");
+});
+
+test("notifications: off by default, on they switch to the full image", async ({
+  page,
+}) => {
+  await page.goto("#/config");
+  const compose = file(page, "compose.yml");
+  await expect(compose).toContainText("krimsn/dnspatch:latest\n");
+  await expect(file(page, "dnspatch.toml")).not.toContainText("notify");
+
+  await page.getByText("Уведомления (необязательно)").click();
+  await expect(
+    page.getByText("сам ничего не отправляет в Telegram"),
+  ).toBeVisible();
+  await page.getByLabel("Отправлять события в MQTT").check();
+
+  const toml = file(page, "dnspatch.toml");
+  await expect(toml).toContainText("[[instance.notify]]");
+  await expect(toml).toContainText('type = "mqtt"');
+  await expect(toml).toContainText('address = "${MQTT_ADDRESS}"');
+  await expect(file(page, ".env")).toContainText("MQTT_ADDRESS=");
+  await expect(compose).toContainText("krimsn/dnspatch:latest-full");
+
+  // status alone is the default and is not written; more events are.
+  await expect(toml).not.toContainText("events");
+  await page.getByLabel("Смена адреса").check();
+  await expect(toml).toContainText('events = ["status", "ip_change"]');
+
+  await page.getByLabel("Отправлять события в MQTT").uncheck();
+  await expect(toml).not.toContainText("notify");
+  await expect(compose).toContainText("krimsn/dnspatch:latest\n");
+});
+
+test("wide screen: the result stays beside the steps", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("#/config");
+  const steps = await page.locator(".steps").boundingBox();
+  const result = await page.locator(".result").boundingBox();
+  expect(steps && result && result.x > steps.x + steps.width - 1).toBe(true);
+});
+
+test("narrow screen: the result goes below the steps", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto("#/config");
+  const steps = await page.locator(".steps").boundingBox();
+  const result = await page.locator(".result").boundingBox();
+  expect(steps && result && result.y >= steps.y + steps.height - 1).toBe(true);
+});
+
 test("language switch", async ({ page }) => {
   await page.goto("#/config");
   await page.getByRole("button", { name: "EN" }).click();

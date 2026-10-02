@@ -32,7 +32,8 @@ jobs:
       - name: Test against dnspatch -check-config
         run: |
           tag=$(node -p "require('./public/schema/index.json').default")
-          go install "github.com/dnspatch/dnspatch/cmd/dnspatch@${tag}"
+          # The full flavour, so that configs with notifiers are accepted too.
+          go install -tags "ping,notify_all" "github.com/dnspatch/dnspatch/cmd/dnspatch@${tag}"
           DNSPATCH_BIN="$(go env GOPATH)/bin/dnspatch" DNSPATCH_TAG="${tag}" npm test
       - run: npm run build
       # The runner has Chrome installed, which the tests use; nothing is downloaded.

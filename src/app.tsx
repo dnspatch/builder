@@ -87,7 +87,7 @@ export function App() {
           </button>
         </span>
       </header>
-      <main>
+      <main class={route === "config" ? "wide" : undefined}>
         {error && <p class="warn">{t("loadError", { error })}</p>}
         {!error && !loaded && <p>{t("loading")}</p>}
         {loaded && route === "config" && <ConfigTool schema={loaded.schema} />}

@@ -129,6 +129,24 @@ GET  {api}/builds/{id}  -> {status: queued|running|done|failed, url?, sha256?, e
 - Accessible: a label on every field, keyboard operable, AA contrast.
 - Pages limits (1 GB site, 100 GB a month) are far above this site's size.
 
+## Constructor layout and choices
+
+- **Two columns** on a wide screen: the steps on the left, a sticky panel on the right
+  with `dnspatch.toml`, `.env` and `compose.yml` updating as the user types. On a
+  phone the panel goes below the steps.
+- **Address** is a list of services, the first being the main one and the rest backups
+  that are asked only when the earlier ones fail. One service by default, "add a backup"
+  appends the next, arrows reorder. The services offered are the ones without required
+  parameters. IPv6 is left out until the schema says which providers write AAAA records,
+  so `family` stays at its IPv4 default and is not shown.
+- **Notifications** are an optional folded block that says plainly what they are:
+  dnspatch publishes events to a message broker (MQTT, RabbitMQ, Redis) and the user's
+  own program reads them; there is no Telegram or email in dnspatch. One notifier per
+  type, declared in place in the instance. The broker address carries credentials, so it
+  is a secret and goes to the environment. Events are checkboxes; `status` alone is the
+  default and is not written. Choosing any notifier switches `compose.yml` to the
+  `latest-full` image, because notifiers are only in the full flavour.
+
 ## Repository layout
 
 ```

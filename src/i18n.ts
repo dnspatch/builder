@@ -19,7 +19,20 @@ const ru = {
   stepFields: "2. Данные вашего домена",
   stepAddress: "3. Как узнавать ваш адрес",
   addressText:
-    "Автоматически: dnspatch спрашивает у сервиса ipify, какой у вас сейчас публичный IP-адрес. Ничего настраивать не нужно.",
+    "dnspatch спрашивает у интернет-сервиса, какой у вас сейчас публичный IP-адрес. Если первый сервис не ответит, он спросит следующий.",
+  retrieverPrimary: "Основной",
+  retrieverBackup: "Запасной {n}",
+  addBackup: "Добавить запасной",
+  moveUp: "Выше",
+  moveDown: "Ниже",
+  remove: "Убрать",
+  stepNotify: "4. Уведомления (необязательно)",
+  notifyIntro:
+    "dnspatch сам ничего не отправляет в Telegram или на почту. Он публикует события в брокер сообщений: MQTT (он есть, например, в Home Assistant), RabbitMQ или Redis, а читает их ваша программа или бот. Если у вас такого брокера нет, пропустите этот шаг.",
+  notifyUse: "Отправлять события в {name}",
+  notifyEvents: "Какие события отправлять",
+  notifyFull:
+    "Для уведомлений нужен образ latest-full: он уже подставлен в compose.yml.",
   secretField:
     "Хранится отдельно от файла настроек: впишите значение в файл .env, в переменную {name}.",
   secretFile:
@@ -27,7 +40,7 @@ const ru = {
   whereToFind: "Где взять",
   moreOptions: "Дополнительные настройки",
   required: "обязательно",
-  stepResult: "4. Готово",
+  stepResult: "Результат",
   missing: "Заполните: {fields}",
   copy: "Копировать",
   copied: "Скопировано",
@@ -80,7 +93,20 @@ const en: Record<Key, string> = {
   stepFields: "2. Your domain details",
   stepAddress: "3. How to find your address",
   addressText:
-    "Automatic: dnspatch asks the ipify service for your current public IP address. Nothing to configure.",
+    "dnspatch asks an internet service for your current public IP address. If the first service does not answer, it asks the next one.",
+  retrieverPrimary: "Main",
+  retrieverBackup: "Backup {n}",
+  addBackup: "Add a backup",
+  moveUp: "Up",
+  moveDown: "Down",
+  remove: "Remove",
+  stepNotify: "4. Notifications (optional)",
+  notifyIntro:
+    "dnspatch does not send anything to Telegram or email by itself. It publishes events to a message broker: MQTT (Home Assistant has one, for example), RabbitMQ or Redis, and your own program or bot reads them. If you have no such broker, skip this step.",
+  notifyUse: "Send events to {name}",
+  notifyEvents: "Which events to send",
+  notifyFull:
+    "Notifications need the latest-full image: it is already set in compose.yml.",
   secretField:
     "Kept apart from the settings file: put the value in the .env file, in the variable {name}.",
   secretFile:
@@ -88,7 +114,7 @@ const en: Record<Key, string> = {
   whereToFind: "Where to find it",
   moreOptions: "More options",
   required: "required",
-  stepResult: "4. Done",
+  stepResult: "Result",
   missing: "Fill in: {fields}",
   copy: "Copy",
   copied: "Copied",

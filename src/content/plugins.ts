@@ -1,4 +1,5 @@
 import type { Lang } from "../i18n";
+import { extras } from "./extras";
 import { moreProviders } from "./providers-more";
 
 export type L10n = Record<Lang, string>;
@@ -23,11 +24,21 @@ export interface PluginInfo {
  * Fields that stay out of the constructor: they are for people who understand
  * networks and would rather write the file by hand.
  */
-export const hiddenFields: ReadonlySet<string> = new Set(["base_url", "proxy"]);
+export const hiddenFields: ReadonlySet<string> = new Set([
+  "base_url",
+  "proxy",
+  // Retrievers: the IP family stays IPv4 until providers say which ones write AAAA.
+  "family",
+  // Notifiers: names of channels and sessions that the defaults get right.
+  "topic_prefix",
+  "client_id",
+  "exchange",
+]);
 
 /** What the constructor offers in this version, in order. */
 export const featured = {
-  retriever: ["ipify"],
+  retriever: ["ipify", "icanhazip", "identme", "ifconfigco", "2ip"],
+  notifier: ["mqtt", "rabbitmq", "redis"],
   provider: [
     "cloudflare",
     "duckdns",
@@ -202,7 +213,8 @@ export const plugins: Record<string, PluginInfo> = {
 };
 
 export function pluginInfo(kind: string, name: string): PluginInfo | undefined {
-  return plugins[`${kind}/${name}`] ?? moreProviders[`${kind}/${name}`];
+  const key = `${kind}/${name}`;
+  return plugins[key] ?? moreProviders[key] ?? extras[key];
 }
 
 /** `plugin.field` of the secrets the constructor keeps in files. */

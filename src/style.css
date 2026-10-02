@@ -242,3 +242,119 @@ pre {
 code {
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
+
+main.wide {
+  max-width: 76rem;
+}
+
+/* Steps on the left, the result on the right; stacked on a narrow screen. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 2rem;
+}
+
+@media (min-width: 64rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 28rem);
+    align-items: start;
+  }
+
+  .result {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+}
+
+.result h2:first-child {
+  margin-top: 2rem;
+}
+
+@media (min-width: 64rem) {
+  .result h2:first-child {
+    margin-top: 0;
+  }
+}
+
+.chain {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chain li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.chain .grow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.badge {
+  flex: none;
+  min-width: 5.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--code);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.add-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.add-row select {
+  flex: 1;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.notify {
+  margin: 2rem 0 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.notify > summary {
+  font-size: 1.15rem;
+}
+
+.notifier {
+  margin: 0.75rem 0;
+}
+
+.indent {
+  margin: 0.5rem 0 0 1.5rem;
+}
+
+.check.event {
+  display: flex;
+  align-items: flex-start;
+  margin: 0.4rem 0;
+}
+
+.check .hint {
+  display: block;
+  margin: 0;
+}
