@@ -31,10 +31,15 @@ export interface ConfigDraft {
   retrievers: readonly PluginChoice[];
   provider: PluginChoice;
   notifiers: readonly NotifierChoice[];
+  /** Call a monitoring URL after every cycle (`ping_url`); the URL itself stays in the environment. */
+  ping: boolean;
 }
 
+/** Environment variable that carries the monitoring URL: it holds a secret key. */
+export const pingEnv = "PING_URL";
+
 export interface Generated {
-  /** Notifiers exist only in the -full flavour, so the config needs that image. */
+  /** Notifiers and pings exist only in the -full flavour, so the config needs that image. */
   full: boolean;
   toml: string;
   /** Template of the environment file that holds the secrets. */
@@ -177,6 +182,7 @@ export function generate(
   add("provider", "instance.provider", draft.provider);
   for (const n of draft.notifiers)
     add("notifier", "instance.notify", n, eventsLine(n.events));
+  if (draft.ping) out.env.push(`${pingEnv}=`);
 
   // Only the sources of secrets this config really uses are mentioned.
   const notes: string[] = [];
@@ -197,6 +203,7 @@ export function generate(
     "",
     "[[instance]]",
     `name = ${quote(draft.name || "home")}`,
+    ...(draft.ping ? [`ping_url = ${quote(`\${${pingEnv}}`)}`] : []),
     "",
     ...blocks.flatMap((b) => [...b, ""]),
   ].join("\n");
@@ -205,7 +212,7 @@ export function generate(
     ? `${["# Secrets for dnspatch. Fill in the values and keep this file private.", ...out.env].join("\n")}\n`
     : "";
   return {
-    full: draft.notifiers.length > 0,
+    full: draft.notifiers.length > 0 || draft.ping,
     toml,
     env,
     missing: out.missing,

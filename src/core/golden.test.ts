@@ -107,6 +107,7 @@ describe.skipIf(!ready)("generated configs pass dnspatch -check-config", () => {
       values: filled(schema, "provider", provider, env),
     },
     notifiers: [],
+    ping: false,
   });
 
   for (const provider of featured.provider) {
@@ -115,6 +116,11 @@ describe.skipIf(!ready)("generated configs pass dnspatch -check-config", () => {
       check(schema, base(provider, env), env);
     });
   }
+
+  test("monitoring with ping_url", () => {
+    const env = { ...process.env, PING_URL: "https://hc-ping.com/uuid" };
+    check(schema, { ...base("cloudflare", env), ping: true }, env);
+  });
 
   test("every retriever at once, as a chain", () => {
     const env = { ...process.env };

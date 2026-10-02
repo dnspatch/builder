@@ -358,3 +358,7 @@ button:disabled {
   display: block;
   margin: 0;
 }
+
+.notify + .notify {
+  margin-top: 0.75rem;
+}

@@ -118,6 +118,32 @@ test("notifications: off by default, on they switch to the full image", async ({
   await expect(compose).toContainText("krimsn/dnspatch:latest\n");
 });
 
+test("monitoring: ping_url comes from the environment and needs the full image", async ({
+  page,
+}) => {
+  await page.goto("#/config");
+  const toml = file(page, "dnspatch.toml");
+  const compose = file(page, "compose.yml");
+  await expect(toml).not.toContainText("ping_url");
+
+  await page.getByText("Мониторинг (необязательно)").click();
+  await page.getByLabel("Сообщать о работе по ссылке (ping)").check();
+
+  await expect(toml).toContainText('ping_url = "${PING_URL}"');
+  await expect(file(page, ".env")).toContainText("PING_URL=");
+  await expect(compose).toContainText("krimsn/dnspatch:latest-full");
+
+  // The same instance table, not a table of its own.
+  const text = (await toml.textContent()) ?? "";
+  expect(text.indexOf("ping_url")).toBeLessThan(
+    text.indexOf("[[instance.retriever]]"),
+  );
+
+  await page.getByLabel("Сообщать о работе по ссылке (ping)").uncheck();
+  await expect(toml).not.toContainText("ping_url");
+  await expect(compose).toContainText("krimsn/dnspatch:latest\n");
+});
+
 test("wide screen: the result stays beside the steps", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("#/config");

@@ -11,6 +11,7 @@ import {
 import { t, useLang } from "../../i18n";
 import { CodeBlock } from "../CodeBlock";
 import { FieldsEditor } from "./FieldsEditor";
+import { MonitorSection } from "./MonitorSection";
 import { NotifierSection } from "./NotifierSection";
 import { RetrieverSection } from "./RetrieverSection";
 
@@ -48,6 +49,7 @@ function emptyDraft(provider: string): ConfigDraft {
     retrievers: [{ type: featured.retriever[0], values: {} }],
     provider: { type: provider, values: {} },
     notifiers: [],
+    ping: false,
   };
 }
 
@@ -118,6 +120,10 @@ export function ConfigTool({ schema }: { schema: Schema }) {
             onChange={(retrievers) => setDraft((d) => ({ ...d, retrievers }))}
           />
 
+          <MonitorSection
+            ping={draft.ping}
+            onChange={(ping) => setDraft((d) => ({ ...d, ping }))}
+          />
           <NotifierSection
             schema={schema}
             notifiers={draft.notifiers}

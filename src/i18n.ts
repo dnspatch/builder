@@ -26,7 +26,15 @@ const ru = {
   moveUp: "Выше",
   moveDown: "Ниже",
   remove: "Убрать",
-  stepNotify: "4. Уведомления (необязательно)",
+  stepMonitor: "4. Мониторинг (необязательно)",
+  monitorIntro:
+    "Если dnspatch перестанет работать (выключился компьютер, пропал интернет), вы можете долго об этом не знать. Мониторинг это решает: после каждой проверки dnspatch «стучится» по ссылке в сервис вроде Healthchecks.io или Uptime Kuma, а сервис пишет вам, когда стук прекращается.",
+  monitorUse: "Сообщать о работе по ссылке (ping)",
+  monitorWhere:
+    "Создайте проверку в Healthchecks.io (или Push-монитор в Uptime Kuma) и скопируйте её адрес для пинга. Впишите его в файл .env: ссылка содержит секретный ключ, поэтому в файл настроек она не попадает.",
+  monitorFull:
+    "Для мониторинга нужен образ latest-full: он уже подставлен в compose.yml.",
+  stepNotify: "5. Уведомления (необязательно)",
   notifyIntro:
     "dnspatch сам ничего не отправляет в Telegram или на почту. Он публикует события в брокер сообщений: MQTT (он есть, например, в Home Assistant), RabbitMQ или Redis, а читает их ваша программа или бот. Если у вас такого брокера нет, пропустите этот шаг.",
   notifyUse: "Отправлять события в {name}",
@@ -100,7 +108,15 @@ const en: Record<Key, string> = {
   moveUp: "Up",
   moveDown: "Down",
   remove: "Remove",
-  stepNotify: "4. Notifications (optional)",
+  stepMonitor: "4. Monitoring (optional)",
+  monitorIntro:
+    "If dnspatch stops working (the computer is off, the internet is gone), you may not know for a long time. Monitoring solves that: after every check dnspatch calls a link at a service like Healthchecks.io or Uptime Kuma, and the service writes to you when the calls stop.",
+  monitorUse: "Report that it is alive by calling a link (ping)",
+  monitorWhere:
+    "Create a check in Healthchecks.io (or a Push monitor in Uptime Kuma) and copy its ping address. Put it in the .env file: the link holds a secret key, so it stays out of the settings file.",
+  monitorFull:
+    "Monitoring needs the latest-full image: it is already set in compose.yml.",
+  stepNotify: "5. Notifications (optional)",
   notifyIntro:
     "dnspatch does not send anything to Telegram or email by itself. It publishes events to a message broker: MQTT (Home Assistant has one, for example), RabbitMQ or Redis, and your own program or bot reads them. If you have no such broker, skip this step.",
   notifyUse: "Send events to {name}",

@@ -64,6 +64,7 @@ const draft: ConfigDraft = {
   retrievers: [{ type: "ipify", values: {} }],
   provider: { type: "cloudflare", values: { zone: "example.com", ttl: "120" } },
   notifiers: [],
+  ping: false,
 };
 
 const withMqtt: Schema = {
@@ -109,6 +110,24 @@ test("retrievers are written in the order given, the first one being the main", 
   expect(first).toBeGreaterThan(-1);
   expect(first).toBeLessThan(second);
   expect(out.toml.indexOf("[[instance.provider]]")).toBeGreaterThan(second);
+});
+
+test("ping_url is written inside the instance, reads the environment and needs the full image", () => {
+  const out = generate({ ...draft, ping: true }, schema);
+  const instance = out.toml.indexOf("[[instance]]");
+  const ping = out.toml.indexOf('ping_url = "${PING_URL}"');
+  expect(ping).toBeGreaterThan(instance);
+  // Still before the first nested table, so it belongs to the instance itself.
+  expect(ping).toBeLessThan(out.toml.indexOf("[[instance.retriever]]"));
+  expect(out.env).toContain("PING_URL=");
+  expect(out.full).toBe(true);
+  expect(generate(draft, schema).toml).not.toContain("ping_url");
+});
+
+test("a generated config with ping is seen as using ping", () => {
+  expect(usageOf(generate({ ...draft, ping: true }, schema).toml).ping).toBe(
+    true,
+  );
 });
 
 test("no retriever is reported as missing", () => {

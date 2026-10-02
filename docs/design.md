@@ -139,6 +139,12 @@ GET  {api}/builds/{id}  -> {status: queued|running|done|failed, url?, sha256?, e
   appends the next, arrows reorder. The services offered are the ones without required
   parameters. IPv6 is left out until the schema says which providers write AAAA records,
   so `family` stays at its IPv4 default and is not shown.
+- **Monitoring** is an optional folded block before notifications, the friendlier cousin
+  for people without a broker: with `ping_url` dnspatch calls a link after every cycle and
+  a service such as Healthchecks.io or Uptime Kuma writes to the user when the calls stop.
+  The URL holds a secret key, so the config says `ping_url = "${PING_URL}"` and the value
+  goes to `.env`. It is written in the `[[instance]]` table itself. The `ping` tag lives
+  only in the full flavour, so `compose.yml` uses `latest-full`.
 - **Notifications** are an optional folded block that says plainly what they are:
   dnspatch publishes events to a message broker (MQTT, RabbitMQ, Redis) and the user's
   own program reads them; there is no Telegram or email in dnspatch. One notifier per
