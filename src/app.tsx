@@ -50,7 +50,15 @@ export function App() {
   return (
     <>
       <header>
-        <strong>{t("appTitle")}</strong>
+        <strong class="brand">
+          <img
+            src={`${import.meta.env.BASE_URL}logo-mark.svg`}
+            alt=""
+            width="32"
+            height="32"
+          />
+          {t("appTitle")}
+        </strong>
         <nav>
           <a
             href="#/config"

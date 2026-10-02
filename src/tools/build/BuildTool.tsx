@@ -3,8 +3,10 @@ import { pluginInfo } from "../../content/plugins";
 import type { Kind, Schema } from "../../core/schema";
 import { advise } from "../../core/tags";
 import { type Usage, type UsedPlugin, usageOf } from "../../core/toml";
+import { takeHandoff } from "../../handoff";
 import { t, useLang } from "../../i18n";
 import { CodeBlock } from "../CodeBlock";
+import { BuildHelper } from "./BuildHelper";
 
 const kindKeys = {
   retriever: "kindRetriever",
@@ -26,6 +28,16 @@ function usageFromConfig(text: string): {
   }
 }
 
+function picksOf(usage?: Usage): { picked: Set<string>; ping: boolean } {
+  return {
+    picked: new Set((usage?.plugins ?? []).map((p) => `${p.kind}/${p.name}`)),
+    ping: usage?.ping ?? false,
+  };
+}
+
+const chipClass = (on: boolean, locked: boolean) =>
+  [on ? "chip on" : "chip", locked ? "locked" : ""].join(" ").trim();
+
 export function BuildTool({
   schema,
   version,
@@ -34,14 +46,27 @@ export function BuildTool({
   version: string;
 }) {
   const lang = useLang();
-  const [text, setText] = useState("");
-  const [picked, setPicked] = useState<Set<string>>(new Set());
-  const [ping, setPing] = useState(false);
+  const [text, setText] = useState(takeHandoff);
+  const [picked, setPicked] = useState(
+    () => picksOf(usageFromConfig(text).usage).picked,
+  );
+  const [ping, setPing] = useState(
+    () => picksOf(usageFromConfig(text).usage).ping,
+  );
 
   const fromConfig = useMemo(() => usageFromConfig(text), [text]);
+  // What a readable config asks for is ticked and locked while the config stands.
+  const locked = picksOf(fromConfig.usage);
 
-  // A pasted config wins; otherwise the hand-picked list is used.
-  const usage: Usage | undefined = fromConfig.usage ?? fromPicks();
+  // Once the config changes or goes, its boxes unlock but stay ticked.
+  const editConfig = (value: string) => {
+    setText(value);
+    const next = picksOf(usageFromConfig(value).usage);
+    setPicked((prev) => new Set([...prev, ...next.picked]));
+    if (next.ping) setPing(true);
+  };
+
+  const usage = fromPicks();
   function fromPicks(): Usage | undefined {
     if (picked.size === 0 && !ping) return undefined;
     const plugins: UsedPlugin[] = [...picked].map((key) => {
@@ -78,7 +103,7 @@ export function BuildTool({
               rows={8}
               spellcheck={false}
               value={text}
-              onInput={(e) => setText(e.currentTarget.value)}
+              onInput={(e) => editConfig(e.currentTarget.value)}
             />
             {fromConfig.error && (
               <p class="warn">{t("parseError", { error: fromConfig.error })}</p>
@@ -95,14 +120,13 @@ export function BuildTool({
                   .filter((p) => p.kind === kind)
                   .map((p) => {
                     const key = `${kind}/${p.name}`;
+                    const held = locked.picked.has(key);
                     return (
-                      <label
-                        class={picked.has(key) ? "chip on" : "chip"}
-                        key={key}
-                      >
+                      <label class={chipClass(picked.has(key), held)} key={key}>
                         <input
                           type="checkbox"
                           checked={picked.has(key)}
+                          disabled={held}
                           onChange={() => toggle(key)}
                         />
                         {pluginInfo(kind, p.name)?.title[lang] ?? p.name}
@@ -115,10 +139,11 @@ export function BuildTool({
           <fieldset class="panel">
             <legend>{t("needPing")}</legend>
             <div class="chips">
-              <label class={ping ? "chip on" : "chip"}>
+              <label class={chipClass(ping, locked.ping)}>
                 <input
                   type="checkbox"
                   checked={ping}
+                  disabled={locked.ping}
                   onChange={(e) => setPing(e.currentTarget.checked)}
                 />
                 ping_url
@@ -152,14 +177,7 @@ export function BuildTool({
               <p>
                 {t("tagsLabel")}: <code>{tags}</code>
               </p>
-              <CodeBlock
-                title=""
-                text={`go install -tags "${tags}" github.com/dnspatch/dnspatch/cmd/dnspatch@${version}`}
-              />
-              <CodeBlock
-                title=""
-                text={`docker build --build-arg TAGS="${tags}" -t dnspatch .`}
-              />
+              <BuildHelper tags={tags} version={version} />
             </>
           )}
         </aside>

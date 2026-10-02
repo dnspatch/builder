@@ -8,6 +8,8 @@ import {
   generate,
   secretsDir,
 } from "../../core/toml";
+import { zip } from "../../core/zip";
+import { sendToBuild } from "../../handoff";
 import { t, useLang } from "../../i18n";
 import { CodeBlock } from "../CodeBlock";
 import { FieldsEditor } from "./FieldsEditor";
@@ -41,6 +43,22 @@ function filesFor(result: Generated): string[] {
     ...(result.env ? [".env"] : []),
     ...result.files.map((f) => `secrets/${f}`),
   ];
+}
+
+/** Hands the config, the .env and compose.yml to the browser as one archive. */
+function downloadArchive(result: Generated) {
+  const files = [
+    { name: "compose.yml", text: composeFor(result) },
+    { name: "dnspatch.toml", text: result.toml },
+    ...(result.env ? [{ name: ".env", text: result.env }] : []),
+  ];
+  const blob = new Blob([zip(files)], { type: "application/zip" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "dnspatch.zip";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function emptyDraft(provider: string): ConfigDraft {
@@ -183,6 +201,13 @@ export function ConfigTool({ schema }: { schema: Schema }) {
 
         <aside class="result">
           <h2>{t("stepResult")}</h2>
+          <button
+            type="button"
+            class="primary"
+            onClick={() => downloadArchive(result)}
+          >
+            {t("downloadAll")}
+          </button>
           <CodeBlock title="dnspatch.toml" text={result.toml} />
           {result.env && <CodeBlock title=".env" text={result.env} />}
 
@@ -191,6 +216,12 @@ export function ConfigTool({ schema }: { schema: Schema }) {
           <CodeBlock title="compose.yml" text={composeFor(result)} />
           <CodeBlock title="" text="docker compose up -d" />
           <p class="hint">{t("runMore")}</p>
+
+          <h2>{t("toBuildTitle")}</h2>
+          <p>{t("toBuildHint")}</p>
+          <button type="button" onClick={() => sendToBuild(result.toml)}>
+            {t("toBuild")}
+          </button>
         </aside>
       </div>
     </section>

@@ -261,6 +261,18 @@ type = "cloudflare"
   await expect(page.locator("pre").first()).toHaveText(
     "docker pull krimsn/dnspatch:latest-full",
   );
+  // The boxes follow the pasted config.
+  await expect(page.getByLabel("Cloudflare")).toBeChecked();
+  await expect(page.getByLabel("ping_url")).toBeChecked();
+  await expect(page.getByLabel("Cloudflare")).toBeDisabled();
+  await expect(page.getByLabel("ping_url")).toBeDisabled();
+
+  // Without the config the boxes unlock, but stay ticked.
+  await page.getByLabel("Ваш dnspatch.toml").fill("");
+  await expect(page.getByLabel("Cloudflare")).toBeEnabled();
+  await expect(page.getByLabel("Cloudflare")).toBeChecked();
+  await expect(page.getByLabel("ping_url")).toBeEnabled();
+  await expect(page.getByLabel("ping_url")).toBeChecked();
 });
 
 test("build helper: default plugins need no build", async ({ page }) => {
@@ -306,4 +318,63 @@ test("the page loads nothing from other origins", async ({ page }) => {
   await page.goto("#/config");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   expect(foreign).toEqual([]);
+});
+
+test("build helper: cross-build command follows the chosen platform", async ({
+  page,
+}) => {
+  await page.goto("#/build");
+  await page.getByLabel("Cloudflare").check();
+  await page
+    .getByRole("button", { name: "Помогите мне собрать dnspatch" })
+    .click();
+  await page.getByLabel("Где будет работать dnspatch").selectOption({
+    label: "Роутер на MIPS (little-endian)",
+  });
+  await expect(
+    page.locator("pre").filter({ hasText: "GOMIPS" }).first(),
+  ).toContainText("GOARCH=mipsle GOMIPS=softfloat");
+});
+
+test("build helper: without Go the commands call the unpacked one", async ({
+  page,
+}) => {
+  await page.goto("#/build");
+  await page.getByLabel("Cloudflare").check();
+  await page
+    .getByRole("button", { name: "Помогите мне собрать dnspatch" })
+    .click();
+  await page.getByLabel("У меня не установлен Go").check();
+  await expect(page.getByText("go.dev/dl")).toBeVisible();
+  await page.getByRole("tab", { name: "Linux и macOS" }).first().click();
+  await expect(
+    page.locator("pre:visible").filter({ hasText: "./go/bin/go mod init" }),
+  ).toBeVisible();
+  await page.getByRole("tab", { name: "Windows (cmd)" }).first().click();
+  await expect(
+    page.locator("pre:visible").filter({ hasText: ".\\go\\bin\\go mod init" }),
+  ).toBeVisible();
+});
+
+test("config constructor: one button downloads all files as a zip", async ({
+  page,
+}) => {
+  await page.goto("#/config");
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Скачать всё архивом" }).click();
+  const saved = await download;
+  expect(saved.suggestedFilename()).toBe("dnspatch.zip");
+});
+
+test("config constructor: the config moves to the build helper", async ({
+  page,
+}) => {
+  await page.goto("#/config");
+  await page
+    .getByRole("button", { name: "Открыть в помощнике сборки" })
+    .click();
+  await expect(page).toHaveURL(/#\/build/);
+  await expect(page.locator("textarea")).toHaveValue(
+    /\[\[instance\.retriever\]\]/,
+  );
 });
