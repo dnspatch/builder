@@ -20,5 +20,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
-      - run: npm test
+      # The generated configs are validated by the real dnspatch of the release
+      # whose schema the site ships, so a schema change cannot break them unseen.
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: stable
+          cache: false
+      - run: npm run schemas
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Test against dnspatch -check-config
+        run: |
+          tag=$(node -p "require('./public/schema/index.json').default")
+          go install "github.com/dnspatch/dnspatch/cmd/dnspatch@${tag}"
+          DNSPATCH_BIN="$(go env GOPATH)/bin/dnspatch" DNSPATCH_TAG="${tag}" npm test
       - run: npm run build

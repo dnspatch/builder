@@ -74,9 +74,11 @@ net, and by hand. A browser cannot reliably read GitHub release assets (CORS), a
 a self-contained bundle has no runtime third parties anyway. Releases without a
 schema, or with an unsupported `schema_version`, are skipped.
 
-Texts that a Go tag is a bad home for (where to find a value, links, screenshots)
-live here as `content/hints/<plugin>.<lang>.md`, keyed by plugin and field. A check
-reports required fields that have no hint.
+Texts that a Go tag is a bad home for (titles, where to find a value, links) live
+in `src/content/plugins.ts`, keyed by `kind/name` and field, in Russian and English.
+The constructor offers only the plugins listed in `featured` there; the helper
+offers every plugin of the schema. Fields `base_url` and `proxy` are hidden from
+the constructor: they are for people who write the file by hand.
 
 ## Shared core (`src/core`)
 
@@ -133,7 +135,7 @@ GET  {api}/builds/{id}  -> {status: queued|running|done|failed, url?, sha256?, e
 src/core          pure logic and its tests
 src/tools/config  config constructor
 src/tools/build   build helper
-content/hints     per-plugin help texts, ru and en
+src/content       per-plugin titles and help texts, ru and en
 public/schema     release schemas, fetched by CI
 e2e               browser tests
 ```

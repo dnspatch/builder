@@ -2,5 +2,10 @@
   "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
   "files": { "includes": ["src/**", "e2e/**", "*.json", "*.ts"] },
   "formatter": { "indentStyle": "space", "indentWidth": 2 },
-  "linter": { "rules": { "recommended": true } }
+  "linter": {
+    "rules": {
+      "recommended": true,
+      "suspicious": { "noTemplateCurlyInString": "off" }
+    }
+  }
 }
