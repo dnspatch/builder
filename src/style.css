@@ -347,14 +347,13 @@ button:disabled {
   margin: 0;
 }
 
-.notify +
-
 /* Foldable blocks of the constructor. */
 .step {
-  margin: 0 0 0.75rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  margin: 0 0 1rem;
+  border: 2px solid color-mix(in srgb, var(--fg) 28%, var(--card));
+  border-radius: 10px;
   background: var(--card);
+  overflow: hidden;
 }
 
 .step > summary {
@@ -366,7 +365,6 @@ button:disabled {
   font-size: 1.1rem;
   cursor: pointer;
   list-style: none;
-  border-radius: 8px;
   background: var(--code);
   user-select: none;
 }
@@ -385,7 +383,6 @@ button:disabled {
 }
 
 .step[open] > summary {
-  border-radius: 8px 8px 0 0;
   border-bottom: 1px solid var(--line);
 }
 
