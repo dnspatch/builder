@@ -14,6 +14,7 @@ import { FieldsEditor } from "./FieldsEditor";
 import { MonitorSection } from "./MonitorSection";
 import { NotifierSection } from "./NotifierSection";
 import { RetrieverSection } from "./RetrieverSection";
+import { Step } from "./Step";
 
 /** compose.yml for the files the generated config needs. */
 function composeFor(result: Generated): string {
@@ -46,7 +47,10 @@ function emptyDraft(provider: string): ConfigDraft {
   return {
     name: "home",
     interval: "5m",
-    retrievers: [{ type: featured.retriever[0], values: {} }],
+    retrievers: featured.defaultRetrievers.map((type) => ({
+      type,
+      values: {},
+    })),
     provider: { type: provider, values: {} },
     notifiers: [],
     ping: false,
@@ -63,6 +67,18 @@ export function ConfigTool({ schema }: { schema: Schema }) {
     [draft, schema],
   );
 
+  // What is still empty in the domain block, named as the form names it.
+  const providerInfo = pluginInfo("provider", draft.provider.type);
+  const missing = result.missing
+    .filter((m) => m.startsWith(`${draft.provider.type}.`))
+    .map((m) => {
+      const field = m.split(".")[1] ?? m;
+      return providerInfo?.fields[field]?.label[lang] ?? field;
+    });
+
+  const titleOf = (kind: string, name: string) =>
+    pluginInfo(kind, name)?.title[lang] ?? name;
+
   return (
     <section>
       <h1>{t("configTitle")}</h1>
@@ -70,78 +86,103 @@ export function ConfigTool({ schema }: { schema: Schema }) {
 
       <div class="layout">
         <div class="steps">
-          <h2>{t("stepProvider")}</h2>
-          <p class="hint">{t("stepProviderHelp")}</p>
-          <div class="cards" role="radiogroup">
-            {featured.provider.map((name) => {
-              const p = pluginInfo("provider", name);
-              const selected = draft.provider.type === name;
-              return (
-                <label class={selected ? "card selected" : "card"} key={name}>
-                  <input
-                    type="radio"
-                    name="provider"
-                    checked={selected}
-                    onChange={() =>
-                      setDraft((d) => ({
-                        ...d,
-                        provider: { type: name, values: {} },
-                      }))
-                    }
-                  />
-                  <strong>{p?.title[lang] ?? name}</strong>
-                  <span>{p?.summary[lang]}</span>
-                </label>
-              );
-            })}
-          </div>
+          <Step
+            title={t("stepProvider")}
+            info={titleOf("provider", draft.provider.type)}
+            warn={
+              missing.length > 0
+                ? t("missing", { fields: missing.join(", ") })
+                : undefined
+            }
+            defaultOpen
+          >
+            <p class="hint">{t("stepProviderHelp")}</p>
+            <div class="cards" role="radiogroup">
+              {featured.provider.map((name) => {
+                const p = pluginInfo("provider", name);
+                const selected = draft.provider.type === name;
+                return (
+                  <label class={selected ? "card selected" : "card"} key={name}>
+                    <input
+                      type="radio"
+                      name="provider"
+                      checked={selected}
+                      onChange={() =>
+                        setDraft((d) => ({
+                          ...d,
+                          provider: { type: name, values: {} },
+                        }))
+                      }
+                    />
+                    <strong>{p?.title[lang] ?? name}</strong>
+                    <span>{p?.summary[lang]}</span>
+                  </label>
+                );
+              })}
+            </div>
 
-          <h2>{t("stepFields")}</h2>
-          {provider && (
-            <FieldsEditor
-              kind="provider"
-              plugin={provider}
-              values={draft.provider.values}
-              onChange={(field, value) =>
-                setDraft((d) => ({
-                  ...d,
-                  provider: {
-                    ...d.provider,
-                    values: { ...d.provider.values, [field]: value },
-                  },
-                }))
-              }
+            <h3>{t("stepFields")}</h3>
+            {provider && (
+              <FieldsEditor
+                kind="provider"
+                plugin={provider}
+                values={draft.provider.values}
+                onChange={(field, value) =>
+                  setDraft((d) => ({
+                    ...d,
+                    provider: {
+                      ...d.provider,
+                      values: { ...d.provider.values, [field]: value },
+                    },
+                  }))
+                }
+              />
+            )}
+          </Step>
+
+          <Step
+            title={t("stepAddress")}
+            info={draft.retrievers
+              .map((r) => titleOf("retriever", r.type))
+              .join(" → ")}
+            defaultOpen
+          >
+            <RetrieverSection
+              retrievers={draft.retrievers}
+              onChange={(retrievers) => setDraft((d) => ({ ...d, retrievers }))}
             />
-          )}
+          </Step>
 
-          <h2>{t("stepAddress")}</h2>
-          <RetrieverSection
-            retrievers={draft.retrievers}
-            onChange={(retrievers) => setDraft((d) => ({ ...d, retrievers }))}
-          />
+          <Step
+            title={t("stepMonitor")}
+            info={draft.ping ? t("sumOn") : t("sumOff")}
+          >
+            <MonitorSection
+              ping={draft.ping}
+              onChange={(ping) => setDraft((d) => ({ ...d, ping }))}
+            />
+          </Step>
 
-          <MonitorSection
-            ping={draft.ping}
-            onChange={(ping) => setDraft((d) => ({ ...d, ping }))}
-          />
-          <NotifierSection
-            schema={schema}
-            notifiers={draft.notifiers}
-            onChange={(notifiers) => setDraft((d) => ({ ...d, notifiers }))}
-          />
+          <Step
+            title={t("stepNotify")}
+            info={
+              draft.notifiers.length > 0
+                ? draft.notifiers
+                    .map((n) => titleOf("notifier", n.type))
+                    .join(", ")
+                : t("sumNone")
+            }
+          >
+            <NotifierSection
+              schema={schema}
+              notifiers={draft.notifiers}
+              onChange={(notifiers) => setDraft((d) => ({ ...d, notifiers }))}
+            />
+          </Step>
         </div>
 
         <aside class="result">
           <h2>{t("stepResult")}</h2>
-          {result.missing.length > 0 && (
-            <p class="warn">
-              {t("missing", {
-                fields: result.missing
-                  .map((m) => m.split(".")[1] ?? m)
-                  .join(", "),
-              })}
-            </p>
-          )}
           <CodeBlock title="dnspatch.toml" text={result.toml} />
           {result.env && <CodeBlock title=".env" text={result.env} />}
 

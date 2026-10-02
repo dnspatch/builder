@@ -38,6 +38,14 @@ export const hiddenFields: ReadonlySet<string> = new Set([
 /** What the constructor offers in this version, in order. */
 export const featured = {
   retriever: ["ipify", "icanhazip", "identme", "ifconfigco", "2ip"],
+  /**
+   * The chain a new config starts with: the most widely used services, in the
+   * order they are asked. More sources cost nothing in size and make a failure
+   * of one of them harmless. 2ip is left out because it has no `family`
+   * parameter and may answer with an IPv6 address, which the constructor does not
+   * set up records for.
+   */
+  defaultRetrievers: ["ipify", "icanhazip", "ifconfigco"],
   notifier: ["mqtt", "rabbitmq", "redis"],
   provider: [
     "cloudflare",

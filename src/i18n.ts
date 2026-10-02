@@ -16,17 +16,21 @@ const ru = {
   stepProvider: "1. Где находится ваш домен?",
   stepProviderHelp:
     "Выберите сервис, в котором вы управляете доменом. dnspatch будет обновлять там запись, когда меняется ваш IP-адрес.",
-  stepFields: "2. Данные вашего домена",
-  stepAddress: "3. Как узнавать ваш адрес",
+  stepFields: "Данные вашего домена",
+  stepAddress: "2. Как узнавать ваш адрес",
   addressText:
     "dnspatch спрашивает у интернет-сервиса, какой у вас сейчас публичный IP-адрес. Если первый сервис не ответит, он спросит следующий.",
+  dragHint: "Порядок можно менять перетаскиванием строки или стрелками.",
+  sumOn: "включён",
+  sumOff: "выключен",
+  sumNone: "нет",
   retrieverPrimary: "Основной",
   retrieverBackup: "Запасной {n}",
   addBackup: "Добавить запасной",
   moveUp: "Выше",
   moveDown: "Ниже",
   remove: "Убрать",
-  stepMonitor: "4. Мониторинг (необязательно)",
+  stepMonitor: "3. Мониторинг (необязательно)",
   monitorIntro:
     "Если dnspatch перестанет работать (выключился компьютер, пропал интернет), вы можете долго об этом не знать. Мониторинг это решает: после каждой проверки dnspatch «стучится» по ссылке в сервис вроде Healthchecks.io или Uptime Kuma, а сервис пишет вам, когда стук прекращается.",
   monitorUse: "Сообщать о работе по ссылке (ping)",
@@ -34,7 +38,7 @@ const ru = {
     "Создайте проверку в Healthchecks.io (или Push-монитор в Uptime Kuma) и скопируйте её адрес для пинга. Впишите его в файл .env: ссылка содержит секретный ключ, поэтому в файл настроек она не попадает.",
   monitorFull:
     "Для мониторинга нужен образ latest-full: он уже подставлен в compose.yml.",
-  stepNotify: "5. Уведомления (необязательно)",
+  stepNotify: "4. Уведомления (необязательно)",
   notifyIntro:
     "dnspatch сам ничего не отправляет в Telegram или на почту. Он публикует события в брокер сообщений: MQTT (он есть, например, в Home Assistant), RabbitMQ или Redis, а читает их ваша программа или бот. Если у вас такого брокера нет, пропустите этот шаг.",
   notifyUse: "Отправлять события в {name}",
@@ -98,17 +102,21 @@ const en: Record<Key, string> = {
   stepProvider: "1. Where is your domain?",
   stepProviderHelp:
     "Pick the service where you manage the domain. dnspatch will update the record there whenever your IP address changes.",
-  stepFields: "2. Your domain details",
-  stepAddress: "3. How to find your address",
+  stepFields: "Your domain details",
+  stepAddress: "2. How to find your address",
   addressText:
     "dnspatch asks an internet service for your current public IP address. If the first service does not answer, it asks the next one.",
+  dragHint: "Change the order by dragging a row, or with the arrows.",
+  sumOn: "on",
+  sumOff: "off",
+  sumNone: "none",
   retrieverPrimary: "Main",
   retrieverBackup: "Backup {n}",
   addBackup: "Add a backup",
   moveUp: "Up",
   moveDown: "Down",
   remove: "Remove",
-  stepMonitor: "4. Monitoring (optional)",
+  stepMonitor: "3. Monitoring (optional)",
   monitorIntro:
     "If dnspatch stops working (the computer is off, the internet is gone), you may not know for a long time. Monitoring solves that: after every check dnspatch calls a link at a service like Healthchecks.io or Uptime Kuma, and the service writes to you when the calls stop.",
   monitorUse: "Report that it is alive by calling a link (ping)",
@@ -116,7 +124,7 @@ const en: Record<Key, string> = {
     "Create a check in Healthchecks.io (or a Push monitor in Uptime Kuma) and copy its ping address. Put it in the .env file: the link holds a secret key, so it stays out of the settings file.",
   monitorFull:
     "Monitoring needs the latest-full image: it is already set in compose.yml.",
-  stepNotify: "5. Notifications (optional)",
+  stepNotify: "4. Notifications (optional)",
   notifyIntro:
     "dnspatch does not send anything to Telegram or email by itself. It publishes events to a message broker: MQTT (Home Assistant has one, for example), RabbitMQ or Redis, and your own program or bot reads them. If you have no such broker, skip this step.",
   notifyUse: "Send events to {name}",

@@ -328,18 +328,6 @@ button:disabled {
   cursor: default;
 }
 
-.notify {
-  margin: 2rem 0 0;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--card);
-}
-
-.notify > summary {
-  font-size: 1.15rem;
-}
-
 .notifier {
   margin: 0.75rem 0;
 }
@@ -359,6 +347,65 @@ button:disabled {
   margin: 0;
 }
 
-.notify + .notify {
-  margin-top: 0.75rem;
+.notify +
+
+/* Foldable blocks of the constructor. */
+.step {
+  margin: 0 0 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.step > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 1.1rem;
+}
+
+.step-title {
+  font-weight: 600;
+}
+
+.step-info {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.step-warn {
+  color: var(--warn);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.step-body {
+  padding: 0 1rem 1rem;
+}
+
+.step-body h3:first-child {
+  margin-top: 0.5rem;
+}
+
+/* Dragging a retriever to change the order. */
+.chain li[draggable="true"] {
+  cursor: grab;
+}
+
+.chain li.dragging {
+  opacity: 0.4;
+}
+
+.chain li.drop-target {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.handle {
+  color: var(--muted);
+  letter-spacing: -0.2em;
+  user-select: none;
 }

@@ -20,8 +20,7 @@ export function NotifierSection({ schema, notifiers, onChange }: Props) {
     onChange(notifiers.map((n) => (n.type === type ? { ...n, ...patch } : n)));
 
   return (
-    <details class="notify" open={notifiers.length > 0}>
-      <summary>{t("stepNotify")}</summary>
+    <>
       <p>{t("notifyIntro")}</p>
       {featured.notifier.map((name) => {
         const plugin = findPlugin(schema, "notifier", name);
@@ -91,6 +90,6 @@ export function NotifierSection({ schema, notifiers, onChange }: Props) {
         );
       })}
       {notifiers.length > 0 && <p class="hint">{t("notifyFull")}</p>}
-    </details>
+    </>
   );
 }

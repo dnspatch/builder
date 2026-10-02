@@ -9,8 +9,7 @@ interface Props {
 /** Optional block: a monitoring service that raises the alarm when dnspatch stops reporting. */
 export function MonitorSection({ ping, onChange }: Props) {
   return (
-    <details class="notify" open={ping}>
-      <summary>{t("stepMonitor")}</summary>
+    <>
       <p>{t("monitorIntro")}</p>
       <label class="check">
         <input
@@ -27,6 +26,6 @@ export function MonitorSection({ ping, onChange }: Props) {
           <p class="hint">{t("monitorFull")}</p>
         </div>
       )}
-    </details>
+    </>
   );
 }

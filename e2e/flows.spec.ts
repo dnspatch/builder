@@ -25,14 +25,48 @@ test("config constructor: Cloudflare config with the secret kept out", async ({
   await expect(toml).toContainText('zone = "example.com"');
   await expect(toml).toContainText('token = "${CLOUDFLARE_TOKEN}"');
   await expect(file(page, ".env")).toContainText("CLOUDFLARE_TOKEN=");
-  await expect(page.locator(".warn")).toHaveCount(0);
+  await expect(page.locator(".step-warn")).toHaveCount(0);
 });
 
-test("config constructor: warns about empty required fields", async ({
+test("domain block: the warning names the empty fields, folded or not", async ({
   page,
 }) => {
   await page.goto("#/config");
-  await expect(page.locator(".warn")).toContainText("Заполните");
+  const step = page.locator(".step", { hasText: "Где находится ваш домен" });
+  const warn = step.locator(":scope > summary .step-warn");
+
+  // Named as the form names them, not by their keys in the file.
+  await expect(warn).toHaveText(
+    "Заполните: ID зоны (Zone ID), Домен, Имя записи",
+  );
+  await expect(step).toHaveAttribute("open", "");
+
+  await step.locator(":scope > summary").click();
+  await expect(step).not.toHaveAttribute("open", "");
+  await expect(warn).toBeVisible();
+
+  await step.locator(":scope > summary").click();
+  await page.getByLabel("Домен", { exact: true }).fill("example.com");
+  await expect(warn).toHaveText("Заполните: ID зоны (Zone ID), Имя записи");
+
+  // The result panel no longer carries the warning.
+  await expect(page.locator(".result .warn")).toHaveCount(0);
+});
+
+test("every block can be folded and opened", async ({ page }) => {
+  await page.goto("#/config");
+  const steps = page.locator(".step");
+  await expect(steps).toHaveCount(4);
+  for (let i = 0; i < 4; i++) {
+    const step = steps.nth(i);
+    const wasOpen = await step.evaluate(
+      (el) => (el as HTMLDetailsElement).open,
+    );
+    await step.locator(":scope > summary").click();
+    await expect(step).toHaveJSProperty("open", !wasOpen);
+    await step.locator(":scope > summary").click();
+    await expect(step).toHaveJSProperty("open", wasOpen);
+  }
 });
 
 test("config constructor: a key that lives in a file is mounted into the container", async ({
@@ -51,13 +85,32 @@ test("config constructor: a key that lives in a file is mounted into the contain
   await expect(file(page, "dnspatch.toml")).not.toContainText(".env");
 });
 
-test("retrievers: a backup can be added, reordered and removed", async ({
+test("retrievers: three popular services by default, in order", async ({
+  page,
+}) => {
+  await page.goto("#/config");
+  const items = page.locator(".chain li");
+  await expect(items).toHaveCount(3);
+  await expect(items.nth(0)).toContainText("ipify");
+  await expect(items.nth(1)).toContainText("icanhazip");
+  await expect(items.nth(2)).toContainText("ifconfig.co");
+
+  const toml = (await file(page, "dnspatch.toml").textContent()) ?? "";
+  const at = (type: string) => toml.indexOf(`type = "${type}"`);
+  expect(at("ipify")).toBeGreaterThan(-1);
+  expect(at("ipify")).toBeLessThan(at("icanhazip"));
+  expect(at("icanhazip")).toBeLessThan(at("ifconfigco"));
+});
+
+test("retrievers: a backup can be added, reordered with arrows and removed", async ({
   page,
 }) => {
   await page.goto("#/config");
   const toml = file(page, "dnspatch.toml");
   const items = page.locator(".chain li");
 
+  await page.getByRole("button", { name: "Убрать: ifconfig.co" }).click();
+  await page.getByRole("button", { name: "Убрать: icanhazip" }).click();
   await expect(items).toHaveCount(1);
   await expect(page.getByRole("button", { name: /^Убрать/ })).toBeDisabled();
 
@@ -69,22 +122,37 @@ test("retrievers: a backup can be added, reordered and removed", async ({
   await expect(items.nth(0)).toContainText("Основной");
   await expect(items.nth(1)).toContainText("Запасной 1");
 
-  // ipify is first, icanhazip second.
-  const text = await toml.textContent();
-  expect(text?.indexOf('type = "ipify"')).toBeLessThan(
-    text?.indexOf('type = "icanhazip"') ?? -1,
-  );
-
   await page.getByRole("button", { name: "Выше: icanhazip" }).click();
   await expect(items.nth(0)).toContainText("icanhazip");
-  const swapped = await toml.textContent();
-  expect(swapped?.indexOf('type = "icanhazip"')).toBeLessThan(
-    swapped?.indexOf('type = "ipify"') ?? -1,
+  const swapped = (await toml.textContent()) ?? "";
+  expect(swapped.indexOf('type = "icanhazip"')).toBeLessThan(
+    swapped.indexOf('type = "ipify"'),
   );
 
   await page.getByRole("button", { name: "Убрать: icanhazip" }).click();
   await expect(items).toHaveCount(1);
   await expect(toml).not.toContainText("icanhazip");
+});
+
+test("retrievers: a row can be dragged to a new place", async ({ page }) => {
+  await page.goto("#/config");
+  const items = page.locator(".chain li");
+
+  // The last one, ifconfig.co, goes to the top and becomes the main one.
+  await items.nth(2).dragTo(items.nth(0));
+  await expect(items.nth(0)).toContainText("ifconfig.co");
+  await expect(items.nth(0)).toContainText("Основной");
+  await expect(items.nth(1)).toContainText("ipify");
+  await expect(items.nth(2)).toContainText("icanhazip");
+
+  const toml = (await file(page, "dnspatch.toml").textContent()) ?? "";
+  expect(toml.indexOf('type = "ifconfigco"')).toBeLessThan(
+    toml.indexOf('type = "ipify"'),
+  );
+
+  // Dropping a row on itself changes nothing.
+  await items.nth(1).dragTo(items.nth(1));
+  await expect(items.nth(1)).toContainText("ipify");
 });
 
 test("notifications: off by default, on they switch to the full image", async ({
@@ -115,6 +183,12 @@ test("notifications: off by default, on they switch to the full image", async ({
 
   await page.getByLabel("Отправлять события в MQTT").uncheck();
   await expect(toml).not.toContainText("notify");
+  // The block stays open, so another notifier can be picked straight away.
+  await expect(page.getByLabel("Отправлять события в RabbitMQ")).toBeVisible();
+  await page.getByLabel("Отправлять события в RabbitMQ").check();
+  await expect(toml).toContainText('type = "rabbitmq"');
+  await page.getByLabel("Отправлять события в RabbitMQ").uncheck();
+  await expect(page.getByLabel("Отправлять события в Redis")).toBeVisible();
   await expect(compose).toContainText("krimsn/dnspatch:latest\n");
 });
 

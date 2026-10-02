@@ -122,6 +122,21 @@ describe.skipIf(!ready)("generated configs pass dnspatch -check-config", () => {
     check(schema, { ...base("cloudflare", env), ping: true }, env);
   });
 
+  test("the chain a new config starts with", () => {
+    const env = { ...process.env };
+    check(
+      schema,
+      {
+        ...base("cloudflare", env),
+        retrievers: featured.defaultRetrievers.map((type) => ({
+          type,
+          values: {},
+        })),
+      },
+      env,
+    );
+  });
+
   test("every retriever at once, as a chain", () => {
     const env = { ...process.env };
     const draft = base("cloudflare", env);

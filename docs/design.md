@@ -134,11 +134,18 @@ GET  {api}/builds/{id}  -> {status: queued|running|done|failed, url?, sha256?, e
 - **Two columns** on a wide screen: the steps on the left, a sticky panel on the right
   with `dnspatch.toml`, `.env` and `compose.yml` updating as the user types. On a
   phone the panel goes below the steps.
+- **Blocks** (domain, address, monitoring, notifications) all fold. Each keeps its own
+  open state, so ticking or unticking something inside never closes it. A folded block
+  still shows what is chosen in it, and the domain block shows in its title row, folded
+  or open, which fields are still empty, named as the form names them.
 - **Address** is a list of services, the first being the main one and the rest backups
-  that are asked only when the earlier ones fail. One service by default, "add a backup"
-  appends the next, arrows reorder. The services offered are the ones without required
-  parameters. IPv6 is left out until the schema says which providers write AAAA records,
-  so `family` stays at its IPv4 default and is not shown.
+  that are asked only when the earlier ones fail. A new config starts with three of the
+  most used: ipify, icanhazip and ifconfig.co (the last is what dnspatch's own examples
+  use). More sources cost nothing in size and a failure of one is harmless. 2ip is not
+  in the default chain: it has no `family` and may answer with IPv6. The order changes by
+  dragging a row or with the arrows, which also serve the keyboard and touch screens,
+  where native drag and drop does not work. IPv6 is left out until the schema says which
+  providers write AAAA records, so `family` stays at its IPv4 default and is not shown.
 - **Monitoring** is an optional folded block before notifications, the friendlier cousin
   for people without a broker: with `ping_url` dnspatch calls a link after every cycle and
   a service such as Healthchecks.io or Uptime Kuma writes to the user when the calls stop.
