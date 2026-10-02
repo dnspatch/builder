@@ -60,93 +60,110 @@ export function BuildTool({
     });
 
   const tags = advice?.tags.join(",") ?? "";
+  const image = `krimsn/dnspatch:latest${advice?.build === "full" ? "-full" : ""}`;
 
   return (
     <section>
       <h1>{t("buildTitle")}</h1>
       <p>{t("buildIntro")}</p>
 
-      <label class="label" for="paste">
-        {t("pasteLabel")}
-      </label>
-      <textarea
-        id="paste"
-        rows={8}
-        spellcheck={false}
-        value={text}
-        onInput={(e) => setText(e.currentTarget.value)}
-      />
-      {fromConfig.error && (
-        <p class="warn">{t("parseError", { error: fromConfig.error })}</p>
-      )}
+      <div class="layout">
+        <div class="steps">
+          <div class="panel">
+            <label class="label" for="paste">
+              {t("pasteLabel")}
+            </label>
+            <textarea
+              id="paste"
+              rows={8}
+              spellcheck={false}
+              value={text}
+              onInput={(e) => setText(e.currentTarget.value)}
+            />
+            {fromConfig.error && (
+              <p class="warn">{t("parseError", { error: fromConfig.error })}</p>
+            )}
+          </div>
 
-      <h2>{t("orPick")}</h2>
-      {kinds.map((kind) => (
-        <fieldset key={kind}>
-          <legend>{t(kindKeys[kind])}</legend>
-          {schema.plugins
-            .filter((p) => p.kind === kind)
-            .map((p) => {
-              const key = `${kind}/${p.name}`;
-              return (
-                <label class="check" key={key}>
-                  <input
-                    type="checkbox"
-                    checked={picked.has(key)}
-                    onChange={() => toggle(key)}
-                  />
-                  {pluginInfo(kind, p.name)?.title[lang] ?? p.name}
-                </label>
-              );
-            })}
-        </fieldset>
-      ))}
-      <label class="check">
-        <input
-          type="checkbox"
-          checked={ping}
-          onChange={(e) => setPing(e.currentTarget.checked)}
-        />
-        {t("needPing")}
-      </label>
+          <div class="divider">{t("orPick")}</div>
 
-      <h2>{t("verdict")}</h2>
-      {!advice && <p class="hint">{t("nothingYet")}</p>}
-      {advice && (
-        <>
-          <p>
-            {advice.build === "official"
-              ? t("verdictOfficial")
-              : t("verdictFull")}
-          </p>
-          {advice.unknown.length > 0 && (
-            <p class="warn">
-              {t("unknownPlugins", { list: advice.unknown.join(", ") })}
-            </p>
+          {kinds.map((kind) => (
+            <fieldset class="panel" key={kind}>
+              <legend>{t(kindKeys[kind])}</legend>
+              <div class="chips">
+                {schema.plugins
+                  .filter((p) => p.kind === kind)
+                  .map((p) => {
+                    const key = `${kind}/${p.name}`;
+                    return (
+                      <label
+                        class={picked.has(key) ? "chip on" : "chip"}
+                        key={key}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={picked.has(key)}
+                          onChange={() => toggle(key)}
+                        />
+                        {pluginInfo(kind, p.name)?.title[lang] ?? p.name}
+                      </label>
+                    );
+                  })}
+              </div>
+            </fieldset>
+          ))}
+          <fieldset class="panel">
+            <legend>{t("needPing")}</legend>
+            <div class="chips">
+              <label class={ping ? "chip on" : "chip"}>
+                <input
+                  type="checkbox"
+                  checked={ping}
+                  onChange={(e) => setPing(e.currentTarget.checked)}
+                />
+                ping_url
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <aside class="result">
+          <h2>{t("verdict")}</h2>
+          {!advice && <p class="hint">{t("nothingYet")}</p>}
+          {advice && (
+            <>
+              <p>
+                {t(
+                  advice.build === "official"
+                    ? "verdictOfficial"
+                    : "verdictFull",
+                  { image },
+                )}
+              </p>
+              {advice.unknown.length > 0 && (
+                <p class="warn">
+                  {t("unknownPlugins", { list: advice.unknown.join(", ") })}
+                </p>
+              )}
+              <CodeBlock title="" text={`docker pull ${image}`} />
+
+              <h3>{t("customTitle")}</h3>
+              <p class="hint">{t("customHelp")}</p>
+              <p>
+                {t("tagsLabel")}: <code>{tags}</code>
+              </p>
+              <CodeBlock
+                title=""
+                text={`go install -tags "${tags}" github.com/dnspatch/dnspatch/cmd/dnspatch@${version}`}
+              />
+              <CodeBlock
+                title=""
+                text={`docker build --build-arg TAGS="${tags}" -t dnspatch .`}
+              />
+            </>
           )}
-          <h3>{t("readyImage")}</h3>
-          <CodeBlock
-            title=""
-            text={`docker pull krimsn/dnspatch:latest${advice.build === "full" ? "-full" : ""}`}
-          />
-
-          <details>
-            <summary>{t("customTitle")}</summary>
-            <p class="hint">{t("customHelp")}</p>
-            <p>
-              {t("tagsLabel")}: <code>{tags}</code>
-            </p>
-            <CodeBlock
-              title=""
-              text={`go install -tags "${tags}" github.com/dnspatch/dnspatch/cmd/dnspatch@${version}`}
-            />
-            <CodeBlock
-              title=""
-              text={`docker build --build-arg TAGS="${tags}" -t dnspatch .`}
-            />
-          </details>
-        </>
-      )}
+        </aside>
+      </div>
     </section>
   );
 }

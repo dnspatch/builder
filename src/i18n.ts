@@ -75,13 +75,12 @@ const ru = {
   needPing: "Мониторинг (ping_url)",
   verdict: "Что вам подойдёт",
   verdictOfficial:
-    "Своя сборка не нужна. Готовый образ или бинарник уже содержит всё, что нужно.",
+    "Вам подойдёт готовый образ {image}: в нём уже есть всё, что вы выбрали.",
   verdictFull:
-    "Нужен вариант «full»: в нём есть мониторинг и уведомления. Своя сборка по-прежнему не обязательна.",
-  readyImage: "Готовый образ",
-  customTitle: "Нужен самый маленький файл? Соберите свой",
+    "Вам подойдёт готовый образ {image}: в нём есть мониторинг и уведомления, которые вы выбрали.",
+  customTitle: "Или соберите сборку под себя",
   customHelp:
-    "Это нужно, когда места мало (роутер, Raspberry Pi). Понадобится Go или Docker.",
+    "В неё попадёт только то, что вам нужно, поэтому файл получится меньше. Это удобно, когда места мало (роутер, Raspberry Pi). Понадобится Go или Docker.",
   tagsLabel: "Теги сборки",
   unknownPlugins: "Эта версия dnspatch не знает: {list}",
   parseError: "Не удалось прочитать файл: {error}",
@@ -162,13 +161,12 @@ const en: Record<Key, string> = {
   needPing: "Monitoring (ping_url)",
   verdict: "What suits you",
   verdictOfficial:
-    "You do not need your own build. The ready-made image or binary has everything.",
+    "The ready-made image {image} suits you: it already has everything you picked.",
   verdictFull:
-    "You need the “full” flavour: it has monitoring and notifications. Your own build is still optional.",
-  readyImage: "Ready-made image",
-  customTitle: "Want the smallest file? Build your own",
+    "The ready-made image {image} suits you: it has the monitoring and notifications you picked.",
+  customTitle: "Or build one just for you",
   customHelp:
-    "Only needed when space is tight (a router, a Raspberry Pi). Needs Go or Docker.",
+    "It will hold only what you need, so the file is smaller. Handy when space is tight (a router, a Raspberry Pi). Needs Go or Docker.",
   tagsLabel: "Build tags",
   unknownPlugins: "This dnspatch version does not know: {list}",
   parseError: "Could not read the file: {error}",

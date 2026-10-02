@@ -255,7 +255,9 @@ type = "ipify"
 type = "cloudflare"
 `,
   );
-  await expect(page.getByText("Нужен вариант «full»")).toBeVisible();
+  await expect(
+    page.getByText("Вам подойдёт готовый образ krimsn/dnspatch:latest-full"),
+  ).toBeVisible();
   await expect(page.locator("pre").first()).toHaveText(
     "docker pull krimsn/dnspatch:latest-full",
   );
@@ -264,7 +266,9 @@ type = "cloudflare"
 test("build helper: default plugins need no build", async ({ page }) => {
   await page.goto("#/build");
   await page.getByLabel("Cloudflare").check();
-  await expect(page.getByText("Своя сборка не нужна")).toBeVisible();
+  await expect(
+    page.getByText("Вам подойдёт готовый образ krimsn/dnspatch:latest:"),
+  ).toBeVisible();
 });
 
 test("build helper: a broken config is reported, not thrown", async ({
