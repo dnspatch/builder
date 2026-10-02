@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Pages cannot set headers, so the policy is a meta tag. Nothing is loaded from
+     other origins; connect-src names the build service once it exists. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>dnspatch builder</title>
+</head>
+<body>
+<div id="app"></div>
+<noscript>This page needs JavaScript. Nothing you type leaves your browser.</noscript>
+<script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

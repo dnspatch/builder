@@ -1,18 +1,24 @@
 # dnspatch builder
 
-A web configurator for [dnspatch](https://github.com/dnspatch/dnspatch) builds.
-dnspatch picks its retrievers, providers and notifiers at compile time with
-build tags, which gives a small binary but asks the user to know the tags and to
-have a Go toolchain. The builder removes both: answer a few questions (or paste
-a config), get the exact tags, the commands, and a ready binary or Docker image.
+A static web page that helps people who are not into networking set up
+[dnspatch](https://github.com/dnspatch/dnspatch), a dynamic DNS daemon.
 
-Status: design stage, see [docs/design.md](docs/design.md).
+- **Config constructor**: assemble `dnspatch.toml` from blocks, with hints on
+  where to find each value.
+- **Build helper**: from a config or a list of providers, get the build tags and
+  the command; optionally ask the build service for a ready binary or Docker image.
+
+Everything runs in the browser. Secrets never leave it. Design and decisions:
+[docs/design.md](docs/design.md).
 
 ## Development
 
 ```bash
-go run ./cmd/builder -addr :8080
-go test ./...
+npm ci
+npm run dev      # http://localhost:5173/builder/
+npm test
+npm run lint
+npm run build
 ```
 
 ## License

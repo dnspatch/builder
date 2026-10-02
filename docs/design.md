@@ -1,126 +1,142 @@
 # Design
 
-Tracks dnspatch task DNS-59. Status: accepted, nothing but the skeleton is built.
+Tracks dnspatch task DNS-59. Status: accepted; the repository holds a skeleton only.
 
-## Problem
+## Audience and product rules
 
-A dnspatch build is chosen with build tags (`dnspatch_none,cloudflare,ipify`,
-`ping`, `notify_all`, ...). Today the user must read the table in the docs,
-install Go, and cross-compile for the target (a router, a Raspberry Pi, a NAS).
-Only two flavours are published: the lightweight one and `-full`.
+The user knows nothing about networks and wants dynamic DNS working quickly.
+Someone who does will write the config and the build by the documentation and
+never come here. So:
 
-## Goals
+- The UI speaks in tasks, not in dnspatch terms: "where is your domain", "how to
+  find your address", not "provider" and "retriever". Terms are explained inline.
+- Safe defaults are preselected; every knob beyond them sits under "Advanced".
+- Nobody is asked to type a secret into the page. Secret fields are filled with
+  placeholders such as `${CLOUDFLARE_TOKEN}` (dnspatch reads them from the
+  environment or a file) and the tool also produces the matching `.env` template.
+- A custom build is offered only when it is needed. If the config uses only the
+  default plugins the helper says "no build needed, use the official image"; if it
+  needs `ping` or notifiers, it points to the `-full` image; only a wish for a
+  minimal binary leads to a custom build.
 
-1. Recommend a build from what the user runs and needs, without knowing tags.
-2. Hand over a ready artifact: a binary for the target, or a Docker image,
-   with no Go toolchain on the user's side.
-3. Stay a thin layer: dnspatch remains the source of truth for what plugins exist.
+## The two tools
 
-Non-goals: accounts, a plugin marketplace, building arbitrary user code or forks.
-
-## Overview
-
-```
-browser ──► web (static) ──► API ──► job queue ──► sandboxed worker (go build)
-                              │                          │
-                              └──── artifact store ◄─────┘   (binary, archive, OCI tarball)
-```
-
-Single Go binary: serves the static front end and the API, runs the workers.
-
-## Catalog
-
-The builder must not hardcode plugins. dnspatch already generates its plugin list
-(`cmd/genplugins`); it will additionally emit `catalog.json` and attach it to each
-release: kind, name, build tag, title, docs link, tag conflicts, and the measured
-binary size added by the plugin. The builder reads the catalog of the chosen
-release. This is a follow-up task in dnspatch.
-
-## Recommendation
-
-A declarative wizard, data in `profiles/*.yaml`, no logic in code:
-
-1. Where does it run: Docker, Linux server, Raspberry Pi, OpenWrt router, NAS,
-   Windows, macOS. This sets the OS/arch preset (for example OpenWrt asks for
-   the CPU: `arm`, `arm64`, `mipsle`, `mips`, `amd64`; MIPS needs `GOMIPS=softfloat`).
-2. Which DNS provider(s): multi-select with search.
-3. How to learn the IP: retrievers (recommend two or more when the fallback and
-   consensus mode is wanted).
-4. Monitoring and notifications: `ping`, notifier backends.
-
-The result is a profile: tags, target, estimated size, and a one-line rationale
-per choice. Minimal builds use `dnspatch_none` plus the chosen plugins.
-
-**Paste a config.** The user may paste an existing `config.toml`; the page reads
-the plugin types it uses and derives the exact tags. Parsing happens in the
-browser only, because the file holds secrets and never has to leave it.
-
-## Output
-
-Every profile is shown as:
-
-- the tags string, `go install -tags ... ` and `go build` lines;
-- a Docker `--build-arg TAGS=...` line and a compose snippet;
-- a download: archive (`tar.gz` or `zip`) with a `sha256` file;
-- a Docker image as an OCI tarball for `docker load`.
-
-## Build engine
-
-- Source: `go mod download github.com/dnspatch/dnspatch@<tag>` through the module
-  proxy, verified by the checksum database. Only released tags are buildable.
-- Command: `CGO_ENABLED=0 go build -trimpath -tags <tags> -ldflags "-s -w -X main.version=<v>"`,
-  the same as the project's Dockerfile and goreleaser config. `CGO_ENABLED=0`
-  makes cross-compiling free.
-- Input is never free text: tags come from the release catalog (allowlist),
-  OS/arch from a fixed table, the version from the release list.
-- Isolation: each job runs in a throwaway rootless container with no network
-  (the module cache is pre-warmed read-only), CPU/memory/time limits, and a
-  size cap on the output.
-- Cache: key is `sha256(version, sorted tags, goos, goarch, goarm/gomips)`; a hit
-  returns instantly, requests are idempotent. Go build cache is shared between jobs.
-- Docker image: assembled without a Docker daemon with `go-containerregistry`:
-  the binary on the same pinned distroless base as the official image, the same
-  labels, `nonroot`, healthcheck. Delivered as a tarball first; a short-lived
-  registry (`docker pull builder.example/custom/<hash>`) comes later.
-
-## API (sketch)
-
-```
-GET  /api/releases                    released versions
-GET  /api/catalog?version=v0.4.2      plugins of a release
-POST /api/builds                      {version, tags[], os, arch, format} -> {id}
-GET  /api/builds/{id}                 status: queued | running | done | failed
-GET  /api/builds/{id}/artifact        the file
-```
-
-`id` is the cache key, so the same request always yields the same id.
-
-## Security
-
-- No user code runs; only allowlisted tags reach `go build`.
-- Per-IP rate limit and a global queue bound; artifacts expire (TTL, LRU).
-- Provenance: the page shows the release, tags and the Go version of the build;
-  checksums are published; signing (cosign) is a later step.
-- Secrets never reach the server: the config paste is client-side only.
+1. **Config constructor.** Blocks (where the address comes from, where the domain
+   lives, how to be told about problems), forms generated from the plugin schema,
+   live preview of `dnspatch.toml`, copy or download, a short "how to run it" for
+   Docker, Linux and Windows. Later: per-field hints on where to find a value (a
+   Cloudflare zone id, a DuckDNS token).
+2. **Build helper.** Input: a pasted config, or a hand-picked list of plugins, plus
+   the target (Docker, Linux, Raspberry Pi, router, Windows, macOS). Output: the
+   tags, `go install` and `docker build` lines, and an optional "Build it" button.
 
 ## Stack
 
-Go 1.25 (same as dnspatch), `net/http`, `log/slog`, no framework. Front end: plain
-ES modules embedded with `go:embed`, no bundler until a real need appears.
-Deployment: one container on a small VPS; an artifact volume with a TTL cleaner.
+| Concern | Decision | Why |
+|---|---|---|
+| Hosting | GitHub Pages project site, `dnspatch.github.io/builder`, deployed by Actions | Free, fits "a static tool"; a custom domain can come later |
+| Language | TypeScript, `strict` | Schema-driven forms need types |
+| UI | Preact 11 | 4 KB, enough for forms and a preview, no heavy framework |
+| Build | Vite | Static output with a `base` path for Pages |
+| Routing | hash (`#/config`, `#/build`) | Pages has no SPA fallback, so no 404 workaround |
+| Styling | Plain CSS with custom properties, light and dark | No CSS framework; system fonts, nothing fetched |
+| TOML | `smol-toml` to parse, own emitter | Parsing a pasted config; the emitter keeps order and writes comments, which no library does |
+| i18n | Russian and English dictionaries, typed keys | The audience is Russian-speaking first; no library needed |
+| Lint, format | Biome | One tool instead of ESLint plus Prettier |
+| Tests | Vitest; Playwright later for the two main flows | |
+
+Runtime dependencies are exactly two: `preact` and `smol-toml`. A third needs a
+reason in the PR.
+
+## Schema: the single source of truth
+
+dnspatch must publish `schema.json` with every release (a task for the dnspatch
+repository, produced by `cmd/gendoc` from the same plugin config structs that make
+`docs/PARAMETERS.md`): for each plugin its kind (retriever, provider, notifier),
+type name, build tag, title, and fields with name, type, required, default,
+description, `secret` (already a struct tag option) and allowed values.
+
+Delivery is at build time, not at runtime: a workflow in this repository downloads
+the schemas of the latest releases into `public/schema/<version>.json`, triggered
+by a `repository_dispatch` from the dnspatch release workflow and by a nightly
+schedule. A browser cannot reliably read GitHub release assets (CORS), and a
+self-contained bundle has no runtime third parties anyway. A version selector
+lists what the bundle contains; releases without a schema are not supported.
+
+Texts that a Go tag is a bad home for (where to find a value, links, screenshots)
+live here as `content/hints/<plugin>.<lang>.md`, keyed by plugin and field. A check
+reports required fields that have no hint.
+
+## Shared core (`src/core`)
+
+Pure functions, no DOM, unit-tested:
+
+- `schema`: load, index by kind and name.
+- `toml`: emit a config from the form state; parse a pasted config.
+- `tags`: from a config or a plugin list to the build tags, using the schema.
+- `profile`: target to `GOOS`, `GOARCH`, `GOARM`, `GOMIPS`.
+
+Both tools sit on top of them, so the constructor's output can be fed to the
+helper directly.
+
+## Correctness check against dnspatch
+
+CI downloads the dnspatch release and runs `dnspatch --check-config` on golden
+configs generated by the constructor for every plugin. A schema change that breaks
+generated configs fails here, not for a user.
+
+## The "Build it" button
+
+The page never builds anything. The build service is a separate project on the
+owner's VPS. This repository only fixes the contract and ships a client behind a
+feature flag (`VITE_BUILD_API`; empty means the button is hidden):
+
+```
+POST {api}/builds    {version, tags[], os, arch, arm?, mips?, format: "binary" | "docker"}
+                     -> {id}
+GET  {api}/builds/{id}  -> {status: queued|running|done|failed, url?, sha256?, error?}
+```
+
+- The request carries only the version, tags and target. **Never the config.**
+- `id` is a hash of the request, so identical requests are idempotent and cached.
+- The service validates tags against the release schema (allowlist) and must allow
+  CORS from `https://dnspatch.github.io`. Abuse protection (rate limit, queue
+  bound, possibly a proof of work) is the service's job.
+- Polling, no websockets. On failure the page falls back to showing the commands.
+
+## Constraints
+
+- No backend, no accounts, no analytics, no cookies. A draft may be kept in
+  `localStorage`, without secrets.
+- Pages cannot set response headers, so the CSP is a `<meta>` tag
+  (`default-src 'self'`; `connect-src` adds the build API origin when configured).
+  Nothing is loaded from CDNs; fonts are system fonts.
+- Browsers: current evergreen. Without JavaScript the page shows a plain message.
+- Budget: initial JavaScript under 100 KB gzipped (schemas load lazily per version).
+- Accessible: a label on every field, keyboard operable, AA contrast.
+- Pages limits (1 GB site, 100 GB a month) are far above this site's size.
+
+## Repository layout
+
+```
+src/core          pure logic and its tests
+src/tools/config  config constructor
+src/tools/build   build helper
+content/hints     per-plugin help texts, ru and en
+public/schema     release schemas, fetched by CI
+e2e               browser tests
+```
 
 ## Phases
 
-1. **Recommend only.** Wizard, catalog, tags and commands. Static, no build
-   infrastructure, can be hosted on Pages. Needs `catalog.json` from dnspatch.
-2. **Binaries.** Job queue, sandboxed workers, cache, archive download.
-3. **Docker.** OCI tarball, then the short-lived registry.
-4. **Config paste**, size estimates, signing.
+1. Shared core, schema loading, the constructor for the common plugins, the helper
+   without the build button. Needs `schema.json` from dnspatch.
+2. Hints for every provider, the golden `--check-config` check, e2e tests.
+3. The "Build it" client, once the service exists.
+4. Share links without secrets, a custom domain.
 
 ## Open questions
 
-- Where to host and who pays for build CPU (a small VPS with quotas is enough
-  to start).
-- Retention: how long an artifact lives (proposal: 7 days, rebuilt on demand).
-- Whether MIPS and other targets outside the release matrix are supported or
-  only the platforms of the official releases.
+- Which plugins to show first in the constructor (proposal: the five most used).
+- A custom domain, or stay on `dnspatch.github.io/builder`.
+- Whether the build service lives in this organization.
