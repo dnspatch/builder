@@ -240,7 +240,10 @@ const en: Record<Key, string> = {
 
 const dictionaries: Record<Lang, Record<Key, string>> = { ru, en };
 
+/** A link such as /builder/?lang=en opens the site in that language. */
 function detect(): Lang {
+  const asked = new URLSearchParams(location.search).get("lang");
+  if (asked === "ru" || asked === "en") return asked;
   try {
     const saved = localStorage.getItem("lang");
     if (saved === "ru" || saved === "en") return saved;

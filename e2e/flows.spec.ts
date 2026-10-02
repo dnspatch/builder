@@ -378,3 +378,13 @@ test("config constructor: the config moves to the build helper", async ({
     /\[\[instance\.retriever\]\]/,
   );
 });
+
+test("language: ?lang=en opens the site in English", async ({ page }) => {
+  await page.goto("?lang=en#/config");
+  await expect(page.getByRole("heading", { level: 1 })).not.toHaveText(
+    "Настройка dnspatch",
+  );
+  await expect(
+    page.getByRole("link", { name: "Config constructor" }),
+  ).toBeVisible();
+});
