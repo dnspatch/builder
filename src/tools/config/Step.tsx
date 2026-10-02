@@ -1,5 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
+import { t } from "../../i18n";
 
 interface Props {
   title: string;
@@ -33,6 +34,11 @@ export function Step({
         <span class="step-title">{title}</span>
         {info && <span class="step-info">{info}</span>}
         {warn && <span class="step-warn">{warn}</span>}
+        {/* The words and the arrow tell that the header is a button; CSS shows the right word. */}
+        <span class="step-toggle" aria-hidden="true">
+          <span class="when-open">{t("fold")}</span>
+          <span class="when-closed">{t("unfold")}</span>
+        </span>
       </summary>
       <div class="step-body">{children}</div>
     </details>

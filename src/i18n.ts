@@ -21,6 +21,8 @@ const ru = {
   addressText:
     "dnspatch спрашивает у интернет-сервиса, какой у вас сейчас публичный IP-адрес. Если первый сервис не ответит, он спросит следующий.",
   dragHint: "Порядок можно менять перетаскиванием строки или стрелками.",
+  fold: "Свернуть",
+  unfold: "Развернуть",
   sumOn: "включён",
   sumOff: "выключен",
   sumNone: "нет",
@@ -107,6 +109,8 @@ const en: Record<Key, string> = {
   addressText:
     "dnspatch asks an internet service for your current public IP address. If the first service does not answer, it asks the next one.",
   dragHint: "Change the order by dragging a row, or with the arrows.",
+  fold: "Fold",
+  unfold: "Unfold",
   sumOn: "on",
   sumOff: "off",
   sumNone: "none",
