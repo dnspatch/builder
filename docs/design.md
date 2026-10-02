@@ -50,18 +50,29 @@ reason in the PR.
 
 ## Schema: the single source of truth
 
-dnspatch must publish `schema.json` with every release (a task for the dnspatch
-repository, produced by `cmd/gendoc` from the same plugin config structs that make
-`docs/PARAMETERS.md`): for each plugin its kind (retriever, provider, notifier),
-type name, build tag, title, and fields with name, type, required, default,
-description, `secret` (already a struct tag option) and allowed values.
+dnspatch publishes `schema.json` as an asset of every release since `v0.4.4-rc.1`
+(DNS-77), produced by `cmd/gendoc` from the same struct tags that make
+`docs/PARAMETERS.md`. Format `schema_version: 1`, described in dnspatch's
+`docs/development/writing-a-plugin.md`; the types are in `src/core/schema.ts`:
 
-Delivery is at build time, not at runtime: a workflow in this repository downloads
-the schemas of the latest releases into `public/schema/<version>.json`, triggered
-by a `repository_dispatch` from the dnspatch release workflow and by a nightly
-schedule. A browser cannot reliably read GitHub release assets (CORS), and a
-self-contained bundle has no runtime third parties anyway. A version selector
-lists what the bundle contains; releases without a schema are not supported.
+- plugin: `kind` (retriever, provider, notifier), `name` (the `type` in a config),
+  `build_tags` (any one compiles the plugin in), `fields`;
+- field: `name` (`table.key` for a nested table), `type`, `required`,
+  `required_if`, `default`, `example`, `description`, `secret`.
+
+The version grows only on incompatible changes. The schema has **no plugin title
+and no list of allowed values**; until dnspatch adds them, the titles and the
+choices live in `content/` here.
+
+Delivery is at build time, not at runtime. `scripts/fetch-schemas.mjs` (run as
+`npm run schemas`) downloads the schemas of the latest five releases, prereleases
+included, into `public/schema/<tag>.json` and writes `index.json` with the default
+version (the newest stable release, else the newest prerelease). The Pages workflow
+runs it before every build and is triggered by `repository_dispatch`
+(`schema-released`, sent by the dnspatch release), by a nightly schedule as a safety
+net, and by hand. A browser cannot reliably read GitHub release assets (CORS), and
+a self-contained bundle has no runtime third parties anyway. Releases without a
+schema, or with an unsupported `schema_version`, are skipped.
 
 Texts that a Go tag is a bad home for (where to find a value, links, screenshots)
 live here as `content/hints/<plugin>.<lang>.md`, keyed by plugin and field. A check

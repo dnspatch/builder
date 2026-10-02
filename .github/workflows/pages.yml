@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # A dnspatch release sends this with client_payload.tag; the build below
+  # fetches the schemas of the latest releases, so the new one is picked up.
+  repository_dispatch:
+    types: [schema-released]
+  # A safety net in case a dispatch is lost.
+  schedule:
+    - cron: "17 3 * * *"
 
 permissions:
   contents: read
@@ -27,6 +34,9 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm run schemas
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
       - run: npm run build
       - uses: actions/upload-pages-artifact@v4
         with:

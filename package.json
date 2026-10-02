@@ -6,6 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "schemas": "node scripts/fetch-schemas.mjs",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",

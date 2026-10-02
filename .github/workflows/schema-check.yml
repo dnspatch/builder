@@ -1,0 +1,25 @@
+name: Schema fetch
+
+# Checks that the schemas of the dnspatch releases can still be fetched and are in
+# a format the site understands. The same script runs before every deploy.
+on:
+  pull_request:
+    paths:
+      - scripts/**
+      - src/core/schema.ts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node scripts/fetch-schemas.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
