@@ -3,7 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 export type Lang = "ru" | "en";
 
 const ru = {
-  appTitle: "dnspatch builder",
+  appTitle: "builder",
   navConfig: "Конструктор конфига",
   navBuild: "Помощник сборки",
   version: "Версия dnspatch",
@@ -122,7 +122,7 @@ const ru = {
 export type Key = keyof typeof ru;
 
 const en: Record<Key, string> = {
-  appTitle: "dnspatch builder",
+  appTitle: "builder",
   navConfig: "Config constructor",
   navBuild: "Build helper",
   version: "dnspatch version",

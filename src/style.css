@@ -779,6 +779,7 @@ button.primary:hover {
 }
 
 .brand img {
-  width: 2rem;
-  height: 2rem;
+  display: block;
+  height: 3rem;
+  width: auto;
 }

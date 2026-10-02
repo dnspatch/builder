@@ -51,12 +51,18 @@ export function App() {
     <>
       <header>
         <strong class="brand">
-          <img
-            src={`${import.meta.env.BASE_URL}logo-mark.svg`}
-            alt=""
-            width="32"
-            height="32"
-          />
+          <picture>
+            <source
+              media="(prefers-color-scheme: dark)"
+              srcset={`${import.meta.env.BASE_URL}logo-dark.svg`}
+            />
+            <img
+              src={`${import.meta.env.BASE_URL}logo.svg`}
+              alt="dnspatch"
+              width="152"
+              height="48"
+            />
+          </picture>
           {t("appTitle")}
         </strong>
         <nav>
