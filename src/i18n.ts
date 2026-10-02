@@ -22,6 +22,8 @@ const ru = {
     "Автоматически: dnspatch спрашивает у сервиса ipify, какой у вас сейчас публичный IP-адрес. Ничего настраивать не нужно.",
   secretField:
     "Хранится отдельно от файла настроек: впишите значение в файл .env, в переменную {name}.",
+  secretFile:
+    "Хранится отдельно от файла настроек: сохраните значение в файл secrets/{name}.",
   whereToFind: "Где взять",
   moreOptions: "Дополнительные настройки",
   required: "обязательно",
@@ -31,10 +33,8 @@ const ru = {
   copied: "Скопировано",
   download: "Скачать",
   runTitle: "Как запустить",
-  runDocker:
-    "Положите рядом три файла: compose.yml, dnspatch.toml и .env, затем выполните команду:",
-  runDockerNoEnv:
-    "Положите рядом два файла: compose.yml и dnspatch.toml, затем выполните команду:",
+  runFiles:
+    "Положите рядом файлы: {files}. Затем выполните команду в этой папке:",
   runMore: "Другие способы запуска описаны в документации.",
 
   buildTitle: "Помощник сборки",
@@ -83,6 +83,8 @@ const en: Record<Key, string> = {
     "Automatic: dnspatch asks the ipify service for your current public IP address. Nothing to configure.",
   secretField:
     "Kept apart from the settings file: put the value in the .env file, in the variable {name}.",
+  secretFile:
+    "Kept apart from the settings file: save the value to the file secrets/{name}.",
   whereToFind: "Where to find it",
   moreOptions: "More options",
   required: "required",
@@ -92,10 +94,7 @@ const en: Record<Key, string> = {
   copied: "Copied",
   download: "Download",
   runTitle: "How to run it",
-  runDocker:
-    "Put three files side by side: compose.yml, dnspatch.toml and .env, then run:",
-  runDockerNoEnv:
-    "Put two files side by side: compose.yml and dnspatch.toml, then run:",
+  runFiles: "Put these files side by side: {files}. Then run in that folder:",
   runMore: "Other ways to run it are in the documentation.",
 
   buildTitle: "Build helper",

@@ -15,3 +15,6 @@ node_modules/
 
 # Fetched by npm run schemas
 /public/schema/*.json
+
+/test-results/
+/playwright-report/

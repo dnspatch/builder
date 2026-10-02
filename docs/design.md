@@ -142,9 +142,14 @@ e2e               browser tests
 
 ## Phases
 
-1. Shared core, schema loading, the constructor for the common plugins, the helper
-   without the build button. Needs `schema.json` from dnspatch.
-2. Hints for every provider, the golden `--check-config` check, e2e tests.
+1. Done: shared core, schema loading, the constructor, the helper without the build
+   button.
+2. Done: hints for twelve providers (`dyndns2` and `rfc2136` are left to people who
+   write the file by hand), the golden `--check-config` check for each of them, e2e
+   tests in Playwright with the browser that is installed (`PW_CHANNEL`, Chrome by
+   default). Secrets too awkward for an environment variable, such as the Yandex
+   Cloud JSON key, are read from files under `/etc/dnspatch/secrets` with
+   `${file:...}`.
 3. The "Build it" client, once the service exists.
 4. Share links without secrets, a custom domain.
 

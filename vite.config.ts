@@ -1,5 +1,6 @@
 import preact from "@preact/preset-vite";
-import { defineConfig, type Plugin } from "vite";
+import type { Plugin } from "vite";
+import { defineConfig } from "vitest/config";
 
 // The dev server injects styles with <style> tags and talks to the browser over
 // a WebSocket, both of which the strict policy in index.html forbids. The
@@ -18,4 +19,6 @@ export default defineConfig({
   base: "/builder/",
   plugins: [preact(), relaxCspInDev],
   build: { target: "es2022", sourcemap: true },
+  // Browser tests in e2e/ are run by Playwright, not by Vitest.
+  test: { include: ["src/**/*.test.ts"] },
 });

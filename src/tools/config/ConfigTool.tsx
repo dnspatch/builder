@@ -1,23 +1,49 @@
 import { useMemo, useState } from "preact/hooks";
-import { featured, hiddenFields, pluginInfo } from "../../content/plugins";
+import {
+  featured,
+  fileSecrets,
+  hiddenFields,
+  pluginInfo,
+} from "../../content/plugins";
 import type { Field, Schema } from "../../core/schema";
 import { findPlugin } from "../../core/schema";
-import { type ConfigDraft, envName, generate } from "../../core/toml";
+import {
+  type ConfigDraft,
+  envName,
+  type Generated,
+  generate,
+  secretFileName,
+  secretsDir,
+} from "../../core/toml";
 import { t, useLang } from "../../i18n";
 import { CodeBlock } from "../CodeBlock";
 
-const composeFile = `services:
-  dnspatch:
-    image: krimsn/dnspatch:latest
-    restart: unless-stopped
-    volumes:
-      - ./dnspatch.toml:/etc/dnspatch/config.toml:ro
-`;
+/** compose.yml for the files the generated config needs. */
+function composeFor(result: Generated): string {
+  const lines = [
+    "services:",
+    "  dnspatch:",
+    "    image: krimsn/dnspatch:latest",
+    "    restart: unless-stopped",
+  ];
+  if (result.env) lines.push("    env_file: .env");
+  lines.push(
+    "    volumes:",
+    "      - ./dnspatch.toml:/etc/dnspatch/config.toml:ro",
+  );
+  if (result.files.length > 0) lines.push(`      - ./secrets:${secretsDir}:ro`);
+  return `${lines.join("\n")}\n`;
+}
 
-const composeWithEnv = composeFile.replace(
-  "    restart: unless-stopped\n",
-  "    restart: unless-stopped\n    env_file: .env\n",
-);
+/** Names of the files the user has to put next to compose.yml. */
+function filesFor(result: Generated): string[] {
+  return [
+    "compose.yml",
+    "dnspatch.toml",
+    ...(result.env ? [".env"] : []),
+    ...result.files.map((f) => `secrets/${f}`),
+  ];
+}
 
 function emptyDraft(provider: string): ConfigDraft {
   return {
@@ -33,7 +59,10 @@ export function ConfigTool({ schema }: { schema: Schema }) {
   const [draft, setDraft] = useState(() => emptyDraft(featured.provider[0]));
 
   const provider = findPlugin(schema, "provider", draft.provider.type);
-  const result = useMemo(() => generate(draft, schema), [draft, schema]);
+  const result = useMemo(
+    () => generate(draft, schema, fileSecrets),
+    [draft, schema],
+  );
 
   const setValue = (field: string, value: string) =>
     setDraft((d) => ({
@@ -61,9 +90,13 @@ export function ConfigTool({ schema }: { schema: Schema }) {
           <span class="label">{label}</span>
           {finfo?.where && <p class="hint">{finfo.where[lang]}</p>}
           <p class="secret">
-            {t("secretField", {
-              name: envName(draft.provider.type, f.name),
-            })}
+            {fileSecrets.has(`${draft.provider.type}.${f.name}`)
+              ? t("secretFile", {
+                  name: secretFileName(draft.provider.type, f.name),
+                })
+              : t("secretField", {
+                  name: envName(draft.provider.type, f.name),
+                })}
           </p>
         </div>
       );
@@ -88,7 +121,7 @@ export function ConfigTool({ schema }: { schema: Schema }) {
             id={id}
             type="text"
             value={value}
-            placeholder={finfo?.example ?? f.default ?? ""}
+            placeholder={finfo?.example ?? f.example ?? f.default ?? ""}
             onInput={(e) => setValue(f.name, e.currentTarget.value)}
           />
         )}
@@ -152,11 +185,8 @@ export function ConfigTool({ schema }: { schema: Schema }) {
       {result.env && <CodeBlock title=".env" text={result.env} />}
 
       <h2>{t("runTitle")}</h2>
-      <p>{result.env ? t("runDocker") : t("runDockerNoEnv")}</p>
-      <CodeBlock
-        title="compose.yml"
-        text={result.env ? composeWithEnv : composeFile}
-      />
+      <p>{t("runFiles", { files: filesFor(result).join(", ") })}</p>
+      <CodeBlock title="compose.yml" text={composeFor(result)} />
       <CodeBlock title="" text="docker compose up -d" />
       <p class="hint">{t("runMore")}</p>
     </section>

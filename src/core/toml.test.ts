@@ -98,6 +98,15 @@ test("a generated config is read back by usageOf", () => {
   expect(usage.ping).toBe(false);
 });
 
+test("a secret chosen to live in a file is read with ${file:...}", () => {
+  const out = generate(draft, schema, new Set(["cloudflare.token"]));
+  expect(out.toml).toContain(
+    'token = "${file:/etc/dnspatch/secrets/cloudflare_token}"',
+  );
+  expect(out.files).toEqual(["cloudflare_token"]);
+  expect(out.env).toBe("");
+});
+
 test("usageOf finds definitions, notifiers and ping_url", () => {
   const usage = usageOf(`
 [provider.main]

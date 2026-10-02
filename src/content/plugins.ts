@@ -1,4 +1,5 @@
 import type { Lang } from "../i18n";
+import { moreProviders } from "./providers-more";
 
 export type L10n = Record<Lang, string>;
 
@@ -6,8 +7,10 @@ export interface FieldInfo {
   label: L10n;
   /** Where to find the value, for those who have never seen the service's panel. */
   where?: L10n;
-  /** Shown first, before the optional ones, even when not required. */
+  /** Placeholder shown in the input. */
   example?: string;
+  /** A secret too awkward for an environment variable (multi-line): it goes in a file. */
+  asFile?: boolean;
 }
 
 export interface PluginInfo {
@@ -25,7 +28,20 @@ export const hiddenFields: ReadonlySet<string> = new Set(["base_url", "proxy"]);
 /** What the constructor offers in this version, in order. */
 export const featured = {
   retriever: ["ipify"],
-  provider: ["cloudflare", "duckdns", "noip", "regru"],
+  provider: [
+    "cloudflare",
+    "duckdns",
+    "noip",
+    "regru",
+    "beget",
+    "dyn",
+    "dynu",
+    "namecheap",
+    "nicru",
+    "selectel",
+    "timeweb",
+    "yandexcloud",
+  ],
 } as const;
 
 /** Texts the release schema does not carry: titles and hints per plugin and field. */
@@ -186,5 +202,14 @@ export const plugins: Record<string, PluginInfo> = {
 };
 
 export function pluginInfo(kind: string, name: string): PluginInfo | undefined {
-  return plugins[`${kind}/${name}`];
+  return plugins[`${kind}/${name}`] ?? moreProviders[`${kind}/${name}`];
 }
+
+/** `plugin.field` of the secrets the constructor keeps in files. */
+export const fileSecrets: ReadonlySet<string> = new Set(
+  Object.entries({ ...plugins, ...moreProviders }).flatMap(([key, info]) =>
+    Object.entries(info.fields)
+      .filter(([, f]) => f.asFile)
+      .map(([field]) => `${key.split("/")[1]}.${field}`),
+  ),
+);

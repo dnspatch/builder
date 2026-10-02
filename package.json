@@ -11,7 +11,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "lint": "biome check ."
+    "lint": "biome check .",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "preact": "^11.0.0",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
+    "@playwright/test": "^1.63.0",
     "@preact/preset-vite": "^2.10.0",
     "@types/node": "^24.19.1",
     "typescript": "^5.9.0",

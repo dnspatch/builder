@@ -35,3 +35,8 @@ jobs:
           go install "github.com/dnspatch/dnspatch/cmd/dnspatch@${tag}"
           DNSPATCH_BIN="$(go env GOPATH)/bin/dnspatch" DNSPATCH_TAG="${tag}" npm test
       - run: npm run build
+      # The runner has Chrome installed, which the tests use; nothing is downloaded.
+      - name: Browser tests
+        run: npm run e2e
+        env:
+          CI: "true"
