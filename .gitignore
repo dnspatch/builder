@@ -1,0 +1,13 @@
+# Build output
+/builder
+/builder.exe
+/dist/
+
+# Go
+*.test
+*.out
+
+# Local state
+.env
+/data/
+.plan/
