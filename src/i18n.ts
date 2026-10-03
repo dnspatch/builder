@@ -89,6 +89,32 @@ const ru = {
   platformLabel: "Где будет работать dnspatch",
   helpMeBuild: "Помогите мне собрать dnspatch",
   close: "Закрыть",
+  noPluginButton: "Нет моего сервиса?",
+  noProviderTitle: "Попросить добавить сервис",
+  noProviderIntro:
+    "Если вашего сервиса нет в списке, расскажите о нём: мы откроем заявку в репозитории dnspatch.",
+  noProviderService: "Название сервиса",
+  noProviderDocs: "Ссылка на документацию API",
+  noPluginWhy: "Почему нужен именно этот сервис",
+  noPluginWhyHint:
+    "Что вы хотите сделать такого, чего не закрывают существующие плагины",
+  noProviderAuth: "Как API проверяет доступ (необязательно)",
+  noRetrieverTitle: "Попросить добавить способ узнавать адрес",
+  noRetrieverIntro:
+    "Если нужного сервиса нет в списке, расскажите о нём: мы откроем заявку в репозитории dnspatch.",
+  noRetrieverService: "Название сервиса или источника",
+  noRetrieverDocs: "Ссылка на документацию или на адрес, который отдаёт IP",
+  noRetrieverDetails: "Что сервис отвечает и есть ли лимиты (необязательно)",
+  noNotifierTitle: "Попросить добавить способ уведомлений",
+  noNotifierIntro:
+    "Если нужного сервиса нет в списке, расскажите о нём: мы откроем заявку в репозитории dnspatch.",
+  noNotifierService: "Название сервиса или протокола",
+  noNotifierDocs: "Ссылка на документацию",
+  noNotifierAuth: "Как к нему подключаются (необязательно)",
+  noPluginWilling: "Готов(а) сам(а) написать и проверить этот плагин",
+  noPluginNote:
+    "Форма откроется на GitHub уже заполненной. Там её можно поправить и отправить; для этого нужен аккаунт GitHub.",
+  noPluginSubmit: "Открыть заявку на GitHub",
   noGo: "У меня не установлен Go",
   noGoTitle: "Go ставить не нужно, достаточно архива",
   noGoStep1: "Скачайте архив Go",
@@ -207,6 +233,33 @@ const en: Record<Key, string> = {
   platformLabel: "Where dnspatch will run",
   helpMeBuild: "Help me build dnspatch",
   close: "Close",
+  noPluginButton: "Can't find your service?",
+  noProviderTitle: "Ask for a new service",
+  noProviderIntro:
+    "If your service is not in the list, tell us about it: we will open a request in the dnspatch repository.",
+  noProviderService: "Service name",
+  noProviderDocs: "Link to the API documentation",
+  noPluginWhy: "Why this one",
+  noPluginWhyHint:
+    "What you are trying to do that existing plugins do not cover",
+  noProviderAuth: "How the API checks access (optional)",
+  noRetrieverTitle: "Ask for a new way to find your address",
+  noRetrieverIntro:
+    "If the service you need is not in the list, tell us about it: we will open a request in the dnspatch repository.",
+  noRetrieverService: "Service or source name",
+  noRetrieverDocs:
+    "Link to the documentation or to the URL that returns the IP",
+  noRetrieverDetails: "What the service answers with and any limits (optional)",
+  noNotifierTitle: "Ask for a new way to be notified",
+  noNotifierIntro:
+    "If the service you need is not in the list, tell us about it: we will open a request in the dnspatch repository.",
+  noNotifierService: "Service or protocol name",
+  noNotifierDocs: "Link to the documentation",
+  noNotifierAuth: "How a client connects to it (optional)",
+  noPluginWilling: "I'd be willing to write and test this plugin myself",
+  noPluginNote:
+    "The form opens on GitHub already filled in. You can edit and submit it there; that needs a GitHub account.",
+  noPluginSubmit: "Open the request on GitHub",
   noGo: "I do not have Go installed",
   noGoTitle: "No need to install Go, an archive is enough",
   noGoStep1: "Download the Go archive",

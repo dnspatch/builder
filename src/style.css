@@ -152,6 +152,7 @@ h3 {
 }
 
 input[type="text"],
+input[type="url"],
 textarea,
 select {
   width: 100%;
@@ -190,12 +191,14 @@ select {
 
 select:hover,
 input[type="text"]:hover,
+input[type="url"]:hover,
 textarea:hover {
   border-color: var(--accent);
 }
 
 select:focus-visible,
 input[type="text"]:focus-visible,
+input[type="url"]:focus-visible,
 textarea:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
@@ -725,6 +728,26 @@ button.primary:hover {
 
 .callout li {
   margin: 0.3rem 0;
+}
+
+/* The request form: prose in the text areas, narrower than the build helper. */
+.modal.narrow {
+  width: min(36rem, calc(100vw - 2rem));
+}
+
+.modal form .label {
+  margin-top: 0.75rem;
+}
+
+.modal form textarea {
+  min-height: 4.5rem;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.missing-plugin {
+  margin-top: 0.75rem;
 }
 
 .cards.two {
