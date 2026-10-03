@@ -388,3 +388,62 @@ test("language: ?lang=en opens the site in English", async ({ page }) => {
     page.getByRole("link", { name: "Config constructor" }),
   ).toBeVisible();
 });
+
+for (const [kind, block, service, docs, title] of [
+  [
+    "provider",
+    "1. Где находится ваш домен?",
+    "Gandi",
+    "https://api.gandi.net/docs/",
+    "Provider request: Gandi",
+  ],
+  [
+    "retriever",
+    "2. Как узнавать ваш адрес",
+    "myip",
+    "https://api.myip.com/",
+    "Retriever request: myip",
+  ],
+  [
+    "notifier",
+    "4. Уведомления (необязательно)",
+    "NATS",
+    "https://docs.nats.io/",
+    "Notifier request: NATS",
+  ],
+] as const) {
+  test(`missing ${kind}: the form opens a filled-in GitHub issue`, async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      (window as unknown as { opened: string[] }).opened = [];
+      window.open = (url) => {
+        (window as unknown as { opened: string[] }).opened.push(String(url));
+        return null;
+      };
+    });
+    await page.goto("#/config");
+    const step = page.locator("details.step").filter({ hasText: block });
+    // Some blocks are folded until opened.
+    if (!(await step.evaluate((d: HTMLDetailsElement) => d.open)))
+      await step.locator("summary").click();
+    await step.getByRole("button", { name: "Нет моего сервиса?" }).click();
+    const dialog = page.locator(`dialog[data-kind="${kind}"]`);
+    await dialog.getByLabel(/^Название сервиса/).fill(service);
+    await dialog.getByLabel(/^Ссылка на документацию/).fill(docs);
+    await dialog
+      .getByLabel("Почему нужен именно этот сервис")
+      .fill("My domain lives there.");
+    await dialog
+      .getByRole("button", { name: "Открыть заявку на GitHub" })
+      .click();
+    const [opened] = await page.evaluate(
+      () => (window as unknown as { opened: string[] }).opened,
+    );
+    const url = new URL(opened ?? "");
+    expect(url.pathname).toBe("/dnspatch/dnspatch/issues/new");
+    expect(url.searchParams.get("template")).toBe(`${kind}_request.yml`);
+    expect(url.searchParams.get("title")).toBe(title);
+    await expect(dialog).toBeHidden();
+  });
+}

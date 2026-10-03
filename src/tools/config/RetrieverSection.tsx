@@ -2,6 +2,7 @@ import { useState } from "preact/hooks";
 import { featured, pluginInfo } from "../../content/plugins";
 import type { PluginChoice } from "../../core/toml";
 import { t, useLang } from "../../i18n";
+import { MissingPlugin } from "./MissingPlugin";
 
 interface Props {
   retrievers: readonly PluginChoice[];
@@ -141,6 +142,7 @@ export function RetrieverSection({ retrievers, onChange }: Props) {
           </button>
         </div>
       )}
+      <MissingPlugin kind="retriever" />
     </>
   );
 }
