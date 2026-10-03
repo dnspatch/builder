@@ -13,6 +13,7 @@ import { sendToBuild } from "../../handoff";
 import { t, useLang } from "../../i18n";
 import { CodeBlock } from "../CodeBlock";
 import { FieldsEditor } from "./FieldsEditor";
+import { MissingPlugin } from "./MissingPlugin";
 import { MonitorSection } from "./MonitorSection";
 import { NotifierSection } from "./NotifierSection";
 import { RetrieverSection } from "./RetrieverSection";
@@ -138,6 +139,7 @@ export function ConfigTool({ schema }: { schema: Schema }) {
                 );
               })}
             </div>
+            <MissingPlugin kind="provider" />
 
             <h3>{t("stepFields")}</h3>
             {provider && (

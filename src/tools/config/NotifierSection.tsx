@@ -5,6 +5,7 @@ import { findPlugin } from "../../core/schema";
 import { eventTypes, type NotifierChoice } from "../../core/toml";
 import { t, useLang } from "../../i18n";
 import { FieldsEditor } from "./FieldsEditor";
+import { MissingPlugin } from "./MissingPlugin";
 
 interface Props {
   schema: Schema;
@@ -90,6 +91,7 @@ export function NotifierSection({ schema, notifiers, onChange }: Props) {
         );
       })}
       {notifiers.length > 0 && <p class="hint">{t("notifyFull")}</p>}
+      <MissingPlugin kind="notifier" />
     </>
   );
 }
