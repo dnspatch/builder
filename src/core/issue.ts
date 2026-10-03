@@ -7,7 +7,6 @@ export interface PluginRequest {
   why: string;
   /** The last field of the form: how the API authenticates, or what a retriever answers with. */
   extra: string;
-  willing: boolean;
 }
 
 const newIssue = "https://github.com/dnspatch/dnspatch/issues/new";
@@ -34,18 +33,12 @@ const titlePrefix: Record<RequestKind, string> = {
  */
 export function pluginRequestUrl(kind: RequestKind, r: PluginRequest): string {
   const service = r.service.trim();
-  const why = [
-    r.why.trim(),
-    r.willing ? "I'd be willing to write and test this plugin myself." : "",
-  ]
-    .filter(Boolean)
-    .join("\n\n");
   const params = new URLSearchParams({
     template: `${kind}_request.yml`,
     title: `${titlePrefix[kind]}: ${service}`,
     service,
     "api-docs": r.apiDocs.trim(),
-    why,
+    why: r.why.trim(),
   });
   const extra = r.extra.trim();
   if (extra) params.set(extraField[kind], extra);

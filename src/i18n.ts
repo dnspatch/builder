@@ -111,7 +111,6 @@ const ru = {
   noNotifierService: "Название сервиса или протокола",
   noNotifierDocs: "Ссылка на документацию",
   noNotifierAuth: "Как к нему подключаются (необязательно)",
-  noPluginWilling: "Готов(а) сам(а) написать и проверить этот плагин",
   noPluginNote:
     "Форма откроется на GitHub уже заполненной. Там её можно поправить и отправить; для этого нужен аккаунт GitHub.",
   noPluginSubmit: "Открыть заявку на GitHub",
@@ -256,7 +255,6 @@ const en: Record<Key, string> = {
   noNotifierService: "Service or protocol name",
   noNotifierDocs: "Link to the documentation",
   noNotifierAuth: "How a client connects to it (optional)",
-  noPluginWilling: "I'd be willing to write and test this plugin myself",
   noPluginNote:
     "The form opens on GitHub already filled in. You can edit and submit it there; that needs a GitHub account.",
   noPluginSubmit: "Open the request on GitHub",
