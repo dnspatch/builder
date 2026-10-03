@@ -49,7 +49,6 @@ export function MissingPlugin({ kind }: { kind: RequestKind }) {
   const [apiDocs, setApiDocs] = useState("");
   const [why, setWhy] = useState("");
   const [extra, setExtra] = useState("");
-  const [willing, setWilling] = useState(false);
 
   useBackdropClose(dialog);
 
@@ -60,7 +59,6 @@ export function MissingPlugin({ kind }: { kind: RequestKind }) {
       apiDocs,
       why,
       extra,
-      willing,
     });
     window.open(url, "_blank", "noopener");
     dialog.current?.close();
@@ -136,15 +134,6 @@ export function MissingPlugin({ kind }: { kind: RequestKind }) {
             value={extra}
             onInput={(e) => setExtra(e.currentTarget.value)}
           />
-
-          <label class="check">
-            <input
-              type="checkbox"
-              checked={willing}
-              onChange={(e) => setWilling(e.currentTarget.checked)}
-            />
-            <span>{t("noPluginWilling")}</span>
-          </label>
 
           <p class="hint">{t("noPluginNote")}</p>
           <button type="submit" class="primary">
