@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import {
   binaryName,
   buildCommand,
@@ -11,6 +11,7 @@ import {
 import { type Key, t, useLang } from "../../i18n";
 import { CodeBlock } from "../CodeBlock";
 import { Tabs } from "../Tabs";
+import { useBackdropClose } from "../useBackdropClose";
 
 const shells: { id: Shell; label: Key }[] = [
   { id: "posix", label: "shellPosix" },
@@ -42,15 +43,7 @@ export function BuildHelper({
       content: <CodeBlock title="" text={command(id)} />,
     }));
 
-  // A click on the dimmed area around the window closes it; Esc works natively.
-  useEffect(() => {
-    const el = dialog.current;
-    const onClick = (e: MouseEvent) => {
-      if (e.target === el) el?.close();
-    };
-    el?.addEventListener("click", onClick);
-    return () => el?.removeEventListener("click", onClick);
-  }, []);
+  useBackdropClose(dialog);
 
   return (
     <>

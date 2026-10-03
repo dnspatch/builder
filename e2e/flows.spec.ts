@@ -447,3 +447,24 @@ for (const [kind, block, service, docs, title] of [
     await expect(dialog).toBeHidden();
   });
 }
+
+test("window: letting go of the mouse outside after a selection keeps it open, a click outside closes it", async ({
+  page,
+}) => {
+  await page.goto("#/config");
+  const step = page.locator("details.step").first();
+  await step.getByRole("button", { name: "Нет моего сервиса?" }).click();
+  const dialog = page.locator('dialog[data-kind="provider"]');
+  const box = await dialog.boundingBox();
+  if (!box) throw new Error("the window has no box");
+
+  // Press on the title, drag out over the dimmed area, release there.
+  await page.mouse.move(box.x + 40, box.y + 30);
+  await page.mouse.down();
+  await page.mouse.move(2, 2);
+  await page.mouse.up();
+  await expect(dialog).toBeVisible();
+
+  await page.mouse.click(2, 2);
+  await expect(dialog).toBeHidden();
+});

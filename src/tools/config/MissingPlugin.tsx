@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { pluginRequestUrl, type RequestKind } from "../../core/issue";
 import { type Key, t } from "../../i18n";
+import { useBackdropClose } from "../useBackdropClose";
 
 /** The texts that differ between the forms; the rest is shared. */
 const texts: Record<
@@ -50,15 +51,7 @@ export function MissingPlugin({ kind }: { kind: RequestKind }) {
   const [extra, setExtra] = useState("");
   const [willing, setWilling] = useState(false);
 
-  // A click on the dimmed area around the window closes it; Esc works natively.
-  useEffect(() => {
-    const el = dialog.current;
-    const onClick = (e: MouseEvent) => {
-      if (e.target === el) el?.close();
-    };
-    el?.addEventListener("click", onClick);
-    return () => el?.removeEventListener("click", onClick);
-  }, []);
+  useBackdropClose(dialog);
 
   const submit = (e: Event) => {
     e.preventDefault();
