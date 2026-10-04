@@ -6,7 +6,6 @@ const base = {
   apiDocs: "https://api.gandi.net/docs/",
   why: "My domain lives there.",
   extra: "",
-  willing: false,
 };
 
 describe("pluginRequestUrl", () => {
@@ -45,14 +44,5 @@ describe("pluginRequestUrl", () => {
     const retriever = new URL(pluginRequestUrl("retriever", extra));
     expect(provider.searchParams.get("auth")).toBe("plain text");
     expect(retriever.searchParams.get("details")).toBe("plain text");
-  });
-
-  test("adds the willingness to the reason", () => {
-    const url = new URL(
-      pluginRequestUrl("provider", { ...base, willing: true }),
-    );
-    expect(url.searchParams.get("why")).toBe(
-      "My domain lives there.\n\nI'd be willing to write and test this plugin myself.",
-    );
   });
 });
