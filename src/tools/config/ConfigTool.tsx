@@ -1,7 +1,7 @@
 import { useMemo, useState } from "preact/hooks";
 import { featured, fileSecrets, pluginInfo } from "../../content/plugins";
 import type { Schema } from "../../core/schema";
-import { findPlugin } from "../../core/schema";
+import { findPlugin, inDefaultBuild, pingNeedsFull } from "../../core/schema";
 import {
   type ConfigDraft,
   type Generated,
@@ -139,6 +139,9 @@ export function ConfigTool({ schema }: { schema: Schema }) {
                 );
               })}
             </div>
+            {provider && !inDefaultBuild(provider) && (
+              <p class="hint">{t("providerFull")}</p>
+            )}
             <MissingPlugin kind="provider" />
 
             <h3>{t("stepFields")}</h3>
@@ -179,6 +182,7 @@ export function ConfigTool({ schema }: { schema: Schema }) {
           >
             <MonitorSection
               ping={draft.ping}
+              needsFull={pingNeedsFull(schema)}
               onChange={(ping) => setDraft((d) => ({ ...d, ping }))}
             />
           </Step>

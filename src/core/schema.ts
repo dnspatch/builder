@@ -30,6 +30,11 @@ export interface Plugin {
   name: string;
   /** Any one of them compiles the plugin in. */
   build_tags: string[];
+  /**
+   * Whether a build made without tags has the plugin. Releases that come before
+   * the `full` tag do not say; see `inDefaultBuild`.
+   */
+  in_default_build?: boolean;
   fields: Field[];
 }
 
@@ -41,6 +46,24 @@ export interface Schema {
 export interface SchemaIndex {
   default: string;
   versions: { tag: string; prerelease: boolean }[];
+}
+
+/**
+ * Says whether the ready-made image has the plugin. Older releases leave
+ * `in_default_build` out and had every retriever and provider in the ready-made
+ * image and every notifier in the -full one.
+ */
+export function inDefaultBuild(plugin: Plugin): boolean {
+  return plugin.in_default_build ?? plugin.kind !== "notifier";
+}
+
+/**
+ * Says whether `ping_url` needs the -full image. It did in the releases that
+ * come before the `full` tag, which are the ones whose schema has no
+ * `in_default_build`; since then the hook is in every build.
+ */
+export function pingNeedsFull(schema: Schema): boolean {
+  return !schema.plugins.some((p) => p.in_default_build !== undefined);
 }
 
 export function isSchema(value: unknown): value is Schema {

@@ -1,11 +1,12 @@
 import type { Schema } from "./schema";
-import { findPlugin } from "./schema";
+import { findPlugin, inDefaultBuild, pingNeedsFull } from "./schema";
 import type { Usage } from "./toml";
 
 export interface Advice {
   /**
    * official: the ready-made image or binary has everything.
-   * full: monitoring pings or notifiers are needed, which the -full flavour has.
+   * full: a plugin is needed that only the -full flavour has: a notifier or one
+   * of the heavy providers, or, in older releases, the monitoring ping.
    */
   build: "official" | "full";
   /** Tags of the smallest build that holds the plugins, for those who want a small binary. */
@@ -30,14 +31,14 @@ export function minimalTags(
       unknown.push(`${used.kind}/${used.name}`);
       continue;
     }
-    // The tag named like the plugin; the others (…_all) bring in whole groups.
+    // The tag named like the plugin; the others bring in more than that one.
     named.add(
       plugin.build_tags.find((t) => t === plugin.name) ??
         plugin.build_tags[0] ??
         plugin.name,
     );
   }
-  if (usage.ping) named.add("ping");
+  if (usage.ping && pingNeedsFull(schema)) named.add("ping");
   return { tags: ["dnspatch_none", ...[...named].sort()], unknown };
 }
 
@@ -45,6 +46,10 @@ export function minimalTags(
 export function advise(schema: Schema, usage: Usage): Advice {
   const { tags, unknown } = minimalTags(schema, usage);
   const needsFull =
-    usage.ping || usage.plugins.some((p) => p.kind === "notifier");
+    (usage.ping && pingNeedsFull(schema)) ||
+    usage.plugins.some((used) => {
+      const plugin = findPlugin(schema, used.kind, used.name);
+      return plugin !== undefined && !inDefaultBuild(plugin);
+    });
   return { build: needsFull ? "full" : "official", tags, unknown };
 }

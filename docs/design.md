@@ -16,8 +16,12 @@ never come here. So:
   environment or a file) and the tool also produces the matching `.env` template.
 - A custom build is offered only when it is needed. If the config uses only the
   default plugins the helper says "no build needed, use the official image"; if it
-  needs `ping` or notifiers, it points to the `-full` image; only a wish for a
-  minimal binary leads to a custom build.
+  needs a plugin that the ready-made image lacks (a notifier or a heavy provider such
+  as rfc2136, yandexcloud or namecheap, which the schema marks with
+  `in_default_build: false`), it points to the `-full` image; only a wish for a
+  minimal binary leads to a custom build. Releases before the `full` tag, whose
+  schema has no `in_default_build`, are read the old way: every retriever and
+  provider is in the ready-made image, and `ping_url` and the notifiers are not.
 
 ## The two tools
 
@@ -56,7 +60,8 @@ dnspatch publishes `schema.json` as an asset of every release since `v0.4.4-rc.1
 `docs/development/writing-a-plugin.md`; the types are in `src/core/schema.ts`:
 
 - plugin: `kind` (retriever, provider, notifier), `name` (the `type` in a config),
-  `build_tags` (any one compiles the plugin in), `fields`;
+  `build_tags` (any one compiles the plugin in), `in_default_build` (a build without
+  tags has it; absent in releases before the `full` tag), `fields`;
 - field: `name` (`table.key` for a nested table), `type`, `required`,
   `required_if`, `default`, `example`, `description`, `secret`.
 
@@ -150,15 +155,18 @@ GET  {api}/builds/{id}  -> {status: queued|running|done|failed, url?, sha256?, e
   for people without a broker: with `ping_url` dnspatch calls a link after every cycle and
   a service such as Healthchecks.io or Uptime Kuma writes to the user when the calls stop.
   The URL holds a secret key, so the config says `ping_url = "${PING_URL}"` and the value
-  goes to `.env`. It is written in the `[[instance]]` table itself. The `ping` tag lives
-  only in the full flavour, so `compose.yml` uses `latest-full`.
+  goes to `.env`. It is written in the `[[instance]]` table itself. Releases before the
+  `full` tag have the ping only in the full flavour, so for them `compose.yml` uses
+  `latest-full`; since then it is in every build and the note is not shown.
 - **Notifications** are an optional folded block that says plainly what they are:
   dnspatch publishes events to a message broker (MQTT, RabbitMQ, Redis) and the user's
   own program reads them; there is no Telegram or email in dnspatch. One notifier per
   type, declared in place in the instance. The broker address carries credentials, so it
   is a secret and goes to the environment. Events are checkboxes; `status` alone is the
   default and is not written. Choosing any notifier switches `compose.yml` to the
-  `latest-full` image, because notifiers are only in the full flavour.
+  `latest-full` image, because notifiers are only in the full flavour; so does a
+  provider that the schema marks as outside the default build, with a note under the
+  provider cards.
 
 ## Repository layout
 

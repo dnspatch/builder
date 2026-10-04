@@ -1,6 +1,6 @@
 import { parse } from "smol-toml";
 import type { Field, Kind, Plugin, Schema } from "./schema";
-import { findPlugin } from "./schema";
+import { findPlugin, inDefaultBuild, pingNeedsFull } from "./schema";
 
 /** One plugin chosen in the constructor with the values typed for its fields. */
 export interface PluginChoice {
@@ -39,7 +39,7 @@ export interface ConfigDraft {
 export const pingEnv = "PING_URL";
 
 export interface Generated {
-  /** Notifiers and pings exist only in the -full flavour, so the config needs that image. */
+  /** Some of its plugins exist only in the -full flavour, so the config needs that image. */
   full: boolean;
   toml: string;
   /** Template of the environment file that holds the secrets. */
@@ -211,8 +211,19 @@ export function generate(
   const env = out.env.length
     ? `${["# Secrets for dnspatch. Fill in the values and keep this file private.", ...out.env].join("\n")}\n`
     : "";
+  const chosen: [Kind, PluginChoice][] = [
+    ...draft.retrievers.map((r): [Kind, PluginChoice] => ["retriever", r]),
+    ["provider", draft.provider],
+    ...draft.notifiers.map((n): [Kind, PluginChoice] => ["notifier", n]),
+  ];
+  const full =
+    (draft.ping && pingNeedsFull(schema)) ||
+    chosen.some(([kind, choice]) => {
+      const plugin = findPlugin(schema, kind, choice.type);
+      return plugin !== undefined && !inDefaultBuild(plugin);
+    });
   return {
-    full: draft.notifiers.length > 0 || draft.ping,
+    full,
     toml,
     env,
     missing: out.missing,
@@ -227,7 +238,7 @@ export interface UsedPlugin {
 
 export interface Usage {
   plugins: readonly UsedPlugin[];
-  /** An instance sets ping_url, which needs the "ping" build tag. */
+  /** An instance sets ping_url, which older releases have only in the -full flavour. */
   ping: boolean;
 }
 

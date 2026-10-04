@@ -40,6 +40,8 @@ const ru = {
     "Создайте проверку в Healthchecks.io (или Push-монитор в Uptime Kuma) и скопируйте её адрес для пинга. Впишите его в файл .env: ссылка содержит секретный ключ, поэтому в файл настроек она не попадает.",
   monitorFull:
     "Для мониторинга нужен образ latest-full: он уже подставлен в compose.yml.",
+  providerFull:
+    "Этого провайдера нет в обычном образе, нужен образ latest-full: он уже подставлен в compose.yml.",
   stepNotify: "4. Уведомления (необязательно)",
   notifyIntro:
     "dnspatch сам ничего не отправляет в Telegram или на почту. Он публикует события в брокер сообщений: MQTT (он есть, например, в Home Assistant), RabbitMQ или Redis, а читает их ваша программа или бот. Если у вас такого брокера нет, пропустите этот шаг.",
@@ -185,6 +187,8 @@ const en: Record<Key, string> = {
     "Create a check in Healthchecks.io (or a Push monitor in Uptime Kuma) and copy its ping address. Put it in the .env file: the link holds a secret key, so it stays out of the settings file.",
   monitorFull:
     "Monitoring needs the latest-full image: it is already set in compose.yml.",
+  providerFull:
+    "This provider is not in the regular image, it needs the latest-full image: it is already set in compose.yml.",
   stepNotify: "4. Notifications (optional)",
   notifyIntro:
     "dnspatch does not send anything to Telegram or email by itself. It publishes events to a message broker: MQTT (Home Assistant has one, for example), RabbitMQ or Redis, and your own program or bot reads them. If you have no such broker, skip this step.",

@@ -242,3 +242,27 @@ ref = "main"
 test("usageOf throws on invalid TOML", () => {
   expect(() => usageOf("not = = toml")).toThrow();
 });
+
+// A release since the `full` tag: the schema says what a build without tags has.
+const current: Schema = {
+  ...schema,
+  plugins: [
+    ...schema.plugins.map((p) => ({ ...p, in_default_build: true })),
+    {
+      kind: "provider",
+      name: "rfc2136",
+      build_tags: ["rfc2136", "full"],
+      in_default_build: false,
+      fields: [],
+    },
+  ],
+};
+
+test("a provider that the default build leaves out needs the full image, ping does not", () => {
+  expect(generate(draft, current).full).toBe(false);
+  expect(generate({ ...draft, ping: true }, current).full).toBe(false);
+  expect(
+    generate({ ...draft, provider: { type: "rfc2136", values: {} } }, current)
+      .full,
+  ).toBe(true);
+});
