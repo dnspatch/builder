@@ -21,8 +21,9 @@ import {
 } from "./toml";
 
 // Checks the generated configs against the real thing: set DNSPATCH_BIN to a
-// dnspatch binary of the same release as the schema in public/schema, built with
-// the tags "ping,notify_all" so that notifiers are accepted.
+// dnspatch binary of the same release as the schema in public/schema, with every
+// plugin compiled in so that notifiers are accepted: -tags full, or
+// -tags "ping,notify_all" for a release that comes before the full tag.
 const bin = process.env.DNSPATCH_BIN;
 const tag = process.env.DNSPATCH_TAG ?? "v0.4.4-rc.1";
 const schemaPath = join(

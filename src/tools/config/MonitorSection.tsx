@@ -3,11 +3,13 @@ import { t } from "../../i18n";
 
 interface Props {
   ping: boolean;
+  /** The release has the ping only in the -full image. */
+  needsFull: boolean;
   onChange: (next: boolean) => void;
 }
 
 /** Optional block: a monitoring service that raises the alarm when dnspatch stops reporting. */
-export function MonitorSection({ ping, onChange }: Props) {
+export function MonitorSection({ ping, needsFull, onChange }: Props) {
   return (
     <>
       <p>{t("monitorIntro")}</p>
@@ -23,7 +25,7 @@ export function MonitorSection({ ping, onChange }: Props) {
         <div class="indent">
           <p class="hint">{t("monitorWhere")}</p>
           <p class="secret">{t("secretField", { name: pingEnv })}</p>
-          <p class="hint">{t("monitorFull")}</p>
+          {needsFull && <p class="hint">{t("monitorFull")}</p>}
         </div>
       )}
     </>
